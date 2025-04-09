@@ -1,0 +1,1756 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row" id="containerDiv">
+    <div style="display: flex;" >
+        <p style="  font-weight: bold; margin: 8px 0; display: inline-block; margin-right: 5px; margin-left: 3px;">
+            Automatic Cropping
+        </p>
+
+        <form id="modeForm" method="GET">
+            <label class="switch">
+                <input id="modeCheckbox" type="checkbox" name="isChecked"  onchange="changeMode()">
+                <span class="checkSlider round"></span>
+            </label>
+          </form>
+
+    </div>
+   
+    <div id="titlePanel" class="page-header">
+        <h4>Cropped Images</h4>
+    </div>
+
+
+    <div class="my_slider" id="imageTopPanel">
+
+        {% for crop_image in crop_images %}
+        <!-- TODO: change domain will change this if statement to control domain-->
+            {% if crop_image.id %}
+            <div class="gallery">
+                <img
+                    id="{{crop_image.id}}"
+                    src="{{ url_for('static', filename= crop_image.visualization_path ) }}"
+                    width="{{crop_image.width}}"
+                    height="{{crop_image.height}}"
+                    crop-size="{{crop_image.crop_size}}"
+                    style="cursor: pointer;"
+                    onclick="loadCropImage(this);">
+                
+                <div class="viewer-desc">
+                    <p>
+                        {% if crop_image.shared_by is not none%}
+                        <b>Shared by:</b>
+                        {{crop_image.shared_by_name}}
+                        <br>
+                        {% endif %}
+                        <b>Date Created:</b>
+                        {{crop_image.last_modified_date}}
+                        <br>
+                        <b>Date Original Image:</b>
+                        {%for img in original_image %}
+                            {% if crop_image.original_image_id == img.id %}
+                                {{img.creation_date}}
+                            {% endif %}    
+                        {% endfor %}
+                        {{crop_image.original_image_created_date}}
+                        <br>
+                        <button class="btn" id="button{{crop_image.id}}" width="{{crop_image.width}}" style="background-color: #324755; padding: none !important; background-color: #f6f9fc;"
+                        height="{{crop_image.height}}" crop-size="{{crop_image.crop_size}}" original-id="{{crop_image.original_image_id}}" onclick="openModal(`{{crop_image.id}}`)">
+                            <i class="fa fa-map-marker-alt" aria-hidden="true"></i>
+                        </button>
+                        <button class="btn" id="button{{crop_image.id}}" onclick="deleteCropImage(`{{crop_image.id}}`)">
+                            <i class="fa fa-trash" aria-hidden="true"></i>
+                        </button>
+                        
+                    </p>
+                    
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+ 
+        <div>
+
+            
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);z-index: 10000;">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                    
+                <h4 class="modal-title" id="myModalLabel">Crop Image placement</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            </div>
+            <div class="modal-body">
+                <p id="cropImgTiff">
+                    <canvas id="canvas1"></canvas>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+<div id="autoCropContainer" class="col-sm-6" style="display:none; height: 525px; width: 1200px; ">
+    <div class="static" style="overflow: hidden;">
+        <div class="page-header">
+            <h4 style = "margin-left: 15%;">Auto Crop Image Selection <button id="closeButton"   style=" color: #324755;  border: none; background: none; margin-left: 39.5%;">
+                <i class="fa fa-close"></i> 
+            </button></h4>
+            
+            <p id="cropImgTiffAuto" style="margin-left: 15%;">
+                <canvas id="canvas1Auto" style="cursor: pointer;"></canvas>
+            </p>
+            <!-- <div style="display:flex;">
+            <button id="closeButton" class="action-button" >Close</button> 
+        </div> -->
+        </div>
+    </div>
+</div>
+
+<div class="row" style="justify-content: center;">
+        <div class="row gx-3 gy-2 align-items-center">
+            <!-- precision by 2 digits step by 0.01 -->
+            <form id="segmentForm" method="post">
+                <div style="display: flex;">
+                    <div style="display: block;">
+                    <select id="menu" name="menu" class="drop-down" style="cursor: pointer;">
+                        <option value="3">Quickshift Segementation</option>
+                        <option value="2">SLIC Segementation</option>
+                        <option value="1">Watershed Segmentation</option>
+                        <option value="4">Felzenswalb Segementation</option>
+                    </select>
+                    </div>
+                    <div style="display: block;">
+                        <div title="Pre-Processing - Image Manipulation and Adjustments to prepare it for segmentation">
+                            <button id="show-filters-button" class="action-button" type="button">
+                                Pre-Processing
+                            </button>
+                        </div>
+                        <div id="rtt" style="display:none; margin-left: 5px;">
+                            <label>
+                                <div title="Multi-processing - Splits image into smaller crops and restitches together to speed up segmentation">
+                                    <input
+                                    type="hidden"
+                                    value="0"
+                                    name="multiProcessingCheck"
+                                    class="multiProcessingCheckID"
+                                    >
+                                    <input
+                                        type="checkbox"
+                                        id="multiProcessingCheckID"
+                                        name="multiProcessingCheck"
+                                        value="1"
+                                        class="multiProcessingCheckID"
+                                    >
+                                    Multi Processing
+                                </div>
+                            </label>
+                            <br>
+                            <label>
+                                <div title=" Light Adjustment - Generates additional image previews for the user to pick. The images have their lighting adjusted before segmentation.">
+                                    <input
+                                    type="hidden"
+                                    value="0"
+                                    name="LightAdjustmentCheck"
+                                    class="LightAdjustmentCheckID"
+                                    >
+                                    <input
+                                        type="checkbox"
+                                        id="LightAdjustmentCheckId"
+                                        name="LightAdjustmentCheck"
+                                        value="1"
+                                        class="LightAdjustmentCheckID"
+                                    >
+                                    Light Adjustment
+                                </div>
+                            </label>
+                            <br>
+                            <label>
+                                <div title="Contrast Stretching - Increases the distance between the lowest and highest intensity pixels and levels out the rest between that range.">
+                                    <input
+                                        type="hidden"
+                                        value="0"
+                                        name="ContrastStretchCheck"
+                                        class="ContrastStretchCheckID"
+                                    >
+                                    <input
+                                        type="checkbox"
+                                        name="ContrastStretchCheck"
+                                        value="1"
+                                        class="ContrastStretchCheckID"
+                                    >
+                                    Contrast Stretching
+                                </div>
+                            </label>
+                            <br>
+                            <label>
+                                <div title="Determines most dominant colors based on number of clusters using an Adaptive or KMeans algorithm and quantizes the image to a reduced palette of those dominant colors.">
+                                    <input
+                                        type="hidden"
+                                        value="0"
+                                        name="ColorClustCheck"
+                                        class="ColorClustCheckID"
+                                    >
+                                    <input
+                                        type="checkbox"
+                                        name="ColorClustCheck"
+                                        value="1"
+                                        class="ColorClustCheckID2"
+                                    >
+                                    Color Clustering
+                                </div>
+                            </label>
+                            <br>
+                            <div id="ColorClustCheckOn" style="display:none;">
+                                <label for="menuColor"></label>
+                                <select id="menuColor" name="menuColor">
+                                    <option value="1">Adaptive</option>
+                                    <option value="2">K-means</option>
+                                </select>
+                                <div title="The amount of clusters/colors to generate from color clustering.">
+                                    <label class="form-label" for="ColorCluster" style="display:block;">Color Clusters</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="ColorCluster"
+                                        min="1"
+                                        max="25"
+                                        step="1"
+                                        name="Color_Clusters0"
+                                        oninput="ColorClustInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <input type="number" id="ColorClustVal" class="rangeInput"min="1"
+                                    max="25"
+                                    step="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: block;">
+                        <p id="imageCropId" name="imageCropName" hidden></p>
+                        <div id="watershed_seg10" style="display:none;">
+                            <div title="Watershed - Segments an image based on markers generated from apportioning pixels into marked basins.">
+                                <button id="water_seg"  type="button" class="action-button">
+                                    Watershed Segmentation
+                                </button>
+                            </div>
+                            <div id="watershed_seg" style="display:none;">
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="gaussSigma" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="gaussSigma"
+                                        max="10"
+                                        min="1"
+                                        step="0.1"
+                                        name="gauss_sigma0"
+                                        oninput="gaussSigmaInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="gaussSigmaVal"></p>
+                                </div>
+                                <!-- precision by 2 digits step by 0.01 -->
+                                <div title="Feature Separation - Minimum distance, in pixels, between the center point of multiple features.">
+                                    <label class="form-label" for="featureSep" style="display:block;">Feature Separation</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="featureSep"
+                                        max="30"
+                                        min="1"
+                                        step="1"
+                                        name="feature_separation0"
+                                        oninput="featureSepInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="featureSepVal"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: block;">
+                        <div id="SLIC10" style="display:none;">
+                            <div title="SLIC - Segments an Image using Kmeans and Super Pixels highly recommendmended to use with Region Merging">
+                                <button id="slic-button"  type="button" class="action-button">
+                                    SLIC Segmentation
+                                </button>
+                            </div>
+                            <div id="SLIC" style="display:none;">
+                                <div title="Segmentation Level - Amount of Segments to be generated with SLIC one level equals 25 segments">
+                                    <label class="form-label" for="seglvl" style="display:block;">Segmentation Level</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="seglvl"
+                                        min="1"
+                                        max="25"
+                                        step="1"
+                                        name="segmentation_level0"
+                                        oninput="SegLvlInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="SegLvlVal"></p>
+                                </div>
+                                <div title="Compactness - Compacts segments during generation to be less random. The higher the number the more squareish they form">
+                                    <label class="form-label" for="Compact" style="display:block;">Compacting</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="Compact"
+                                        max="50"
+                                        min="1"
+                                        step="1"
+                                        name="Compact0"
+                                        oninput="CompactInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="CompactVal"></p>
+                                </div>
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="EdgeSmooth" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="EdgeSmooth"
+                                        max="10"
+                                        min="0"
+                                        step="0.1"
+                                        name="Edge_Smooth0"
+                                        oninput="EdgeSmoothInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="EdgeSmoothVal"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: block;">
+                        
+                        <div id="quick_seg10">
+                            <div title="Quicksift - Segmentation algorithm, based on an approximation of kernelized mean-shift.">
+                                <button id="quick_seg-button" class="action-button" type="button">
+                                    Quickshift Segmentation
+                                </button>
+                            </div>
+                            <div id="quick_seg"  style="display:none;">
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="gaussSigmaQ" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="gaussSigmaQ"
+                                        max="10"
+                                        min="0"
+                                        step="0.1"
+                                        name="gauss_sigmaQ0"
+                                        oninput="gaussSigmaQInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <!--<p id="gaussSigmaQVal"></p>-->
+                                    <input 
+                                        type="number" id="gaussSigmaQVal" class="rangeInput"  max="10"
+                                        min="0"
+                                        step="0.1">
+                                    
+                                </div>
+                                <!-- precision by 2 digits step by 0.01 -->
+                                <div title="Kernal Size - Width of Gaussian kernel used in smoothing the sample density. Higher means fewer segments.">
+                                    <label class="form-label" for="kernalsize" style="display:block;">Kernal Size</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="kernalsize"
+                                        max="20"
+                                        min="1"
+                                        step="1"
+                                        name="kernalsize0"
+                                        oninput="kernalsizeInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <input type="number" id="kernalsizeVal" class="rangeInput"max="20"
+                                    min="1"
+                                    step="1">
+                                </div>
+                                <div title="Max Distance - Cut-off point for segment distances. Higher means fewer segments.">
+                                    <label class="form-label" for="maxDis" style="display:block;">Max Distance</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="maxDis"
+                                        max="50"
+                                        min="1"
+                                        step="1"
+                                        name="maxDis0"
+                                        oninput="maxDisInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <input type="number" id="maxDisVal" class="rangeInput" max="50"
+                                    min="1"
+                                    step="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: block;">
+                        
+                        <div id="Felz_seg10" style="display:none;">
+                            <div title="Felzenswalb -  Produces an oversegmentation of a multichannel (i.e. RGB) image using a fast, minimum spanning tree based clustering on the image grid.">
+                                <button id="Felz_seg-button" class="action-button" type="button">
+                                    Felzenswalb Segmentation
+                                </button>
+                            </div>
+                            <div id="Felz_seg" style="display:none;">
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="gaussSigmaF" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="gaussSigmaF"
+                                        max="10"
+                                        min="0"
+                                        step="0.1"
+                                        name="gauss_sigmaF0"
+                                        oninput="gaussSigmaFInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="gaussSigmaFVal"></p>
+                                </div>
+                                <!-- precision by 2 digits step by 0.01 -->
+                                <div title="Scale - Sets an observation level. Higher scale means less and larger segments.">
+                                    <label class="form-label" for="scalefel" style="display:block;">Scale</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="scalefel"
+                                        max="20"
+                                        min="1"
+                                        step="0.2"
+                                        name="scalefel0"
+                                        oninput="scalefelInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="scalefelVal"></p>
+                                </div>
+                                <div title="Minimum Size - Minimum segment size. Enforced using postprocessing.">
+                                    <label class="form-label" for="minSize" style="display:block;">Minimum Size</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="minSize"
+                                        max="30"
+                                        min="1"
+                                        step="1"
+                                        name="minSize0"
+                                        oninput="minSizeInput(this)"
+                                        style="display:block;"
+                                        disabled
+                                    >
+                                    <p id="minSizeVal"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: block;">
+                        <div title="Post-Processing - Segmentation Adjustments after segmentation is completed.">
+                            <button id="post_p" class="action-button" type="button">
+                                Post-Processing
+                            </button>
+                        </div>
+                        <div id="pp_seg" style="display:none; margin-left: 5px;">
+                            <label>
+                                <div title="Region Merging - Performs a Region Adajency Graph or RAG and merges similar segmented regions based on their average pixel intensities using a threshold(Normalized Cut does not use a threshold).">
+                                    <input
+                                        type="hidden"
+                                        value="0"
+                                        name="small_rem"
+                                        id="small_remID"
+                                    >
+                                    <input
+                                        type="checkbox"
+                                        name="small_rem"
+                                        value="1"
+                                        id="small_remID"
+                                    >
+                                    Small Feature Removal
+                                    
+                                </div>
+                                <div id="SFROn" style="display: none">
+                                    <label style="display: none" for="menuSFR"></label>
+                                     
+                                    <div title="Merge Threshold - The threshold for region merging, if regions fall within threshold they will be merged.">
+                                        <label class="form-label" for="rem_threshold" style="display:block;">Removal Threshold</label>
+                                        <input
+                                            type="range"
+                                            class="form-range"
+                                            id="rem_threshold"
+                                            min="1"
+                                            max="50"
+                                            step="1"
+                                            name="rem_threshold"
+                                            oninput="rem_thresholdInput(this)"
+                                            style="display:block;"
+                                            disabled
+                                        >
+                                        <input type="number" id="rem_thresholdVal" class="rangeInput"min="1"
+                                        max="50"
+                                        step="1">
+                                    </div>
+                          
+                                </div>
+                                
+                                <div title="Region Merging - Performs a Region Adajency Graph or RAG and merges similar segmented regions based on their average pixel intensities using a threshold(Normalized Cut does not use a threshold).">
+                                    <input
+                                        type="hidden"
+                                        value="0"
+                                        name="RAGCheck"
+                                        id="RAGCheckID"
+                                    >
+                                    
+                                    
+                                    <input
+                                        type="checkbox"
+                                        name="RAGCheck"
+                                        value="1"
+                                        id="RAGCheckID"
+                                    >
+                                    Region Merging
+                                </div>
+                                
+                            </label>
+                            
+                            
+                            <div id="RAGOn" style="display: none">
+                                <label for="menuRAG"></label>
+                                <select id="menuRAG" name="menuRAG">
+                                    <option value="1">Threshold Cut</option>
+                                    <option value="2">Normalized Cut</option>
+                                    <option value="3">Merge Hierarchical</option>
+                                </select>
+                                <div id="RAGOn2">
+                                    <div title="Merge Threshold - The threshold for region merging, if regions fall within threshold they will be merged.">
+                                        <label class="form-label" for="RAGThresh" style="display:block;">Merging Threshold</label>
+                                        <input
+                                            type="range"
+                                            class="form-range"
+                                            id="RAGThresh"
+                                            min="0.1"
+                                            max="50"
+                                            step="0.1"
+                                            name="RAG_Threshold0"
+                                            oninput="RAGThreshInput(this)"
+                                            style="display:block;"
+                                            disabled
+                                        >
+                                        <input type="number" id="RAGThreshVal" class="rangeInput" min="0.1"
+                                        max="50"
+                                        step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                 
+                    <div style="display: block;">
+                        <div title="Mark boundaries">
+                            <button
+                                id="segmentImage"
+                                
+                                class="action-button"
+                                onclick="savePre(0)"
+                                type="button"
+                                disabled
+                            >
+                                Mark Boundaries
+                            </button>
+                        </div>
+                        </div>
+                        <div style="display: block;">
+                            <div title="this Start lable">
+                                <a id="labelRef" href="javascript:void(0)">
+                                    <input
+                                        type="button"
+                                        class="action-button"
+                                        value="Start Label"
+                                    >
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+              
+                        <div
+                            class="modal fade bd-example-modal-lg"
+                            id="saveModal"
+                            role="dialog"
+                            tabindex="-1"
+                            aria-labelledby="exampleModalLabel"
+                            aria-hidden="true"
+                            style="z-index: 10000;"
+                        >
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title" id="exampleModalLabel" style="text-align: center;">Image Preview</h3>
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close"
+                                        ></button>
+                                    </div>
+                                    <br>
+                             
+
+                                      <div class="modal-container">
+                                        
+                                      </div>
+
+
+                                    <div id="lightAdjust" style="display:none">
+                                        <h2 style="font-size: 22px; text-align: center;">Lighting Adjustment Enabled</h2>
+                                        <h3 style="font-size: 17px; margin: 20px;">Please choose one....</h3>
+                                    </div>
+
+                                    <div  >
+                                        <div style="display: block;" >
+                                            <div class="modal-body" id="ShareModalBody" style="z-index: 10000;">
+                                                <div id="previewImage" style="display: flex; overflow: auto;"></div>
+                                                <br>
+                                            </div>
+                                            <div class="col">
+                                                <form id="saveTest" method="post">
+                                                    <div id="savePreview"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer" id="test" >
+                                            <div class="segmentCol">
+                                                <button
+                                                    id="saveDataPre"
+                                                    class="action-button"
+                                                    type="button"
+                                                    onclick="savePreview(0)"
+                                                >
+                                                    Save
+                                                </button>
+                                            </form>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-6">
+        <div class="origCard image-card" style="margin-top: 5px;">
+            <div class="card-header">
+                <b style="float:left;">Original image name :</b>
+                <p id="cropImgName" style="text-align:left; display: inline-block;"></p>
+                <span id="info-icon" style="cursor: pointer; font-size: 10px; vertical-align: top;" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="top">
+                    <i class="fas fa-info-circle"></i>
+                  </span>
+                  <p id="cropImg" style="display:none;"></p>
+            </div>
+            <div class="card-body">
+                <canvas id="cropCanvas" style="width: 512px; height: 512px;object-fit: cover;">
+                </div>
+            </div>
+        </div>
+      
+        
+        
+        
+        <div class="col-sm-6">
+            <div class="static" style="overflow: hidden;">
+                <div class="page-header">
+                    <h4>Image Panel</h4>
+                </div>
+                <div class="row">
+                    <div id="imagePanel" style="overflow-y: scroll; max-height: 700px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+<style>
+    .myDiv {
+        display: none;
+        padding: 10px;
+        margin-top: 20px;
+    }
+
+    .highlight {
+        box-shadow: 0 0 10px #1509fd;
+    }
+</style>
+<script
+    type="text/javascript"
+    src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"
+></script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+<script>
+    
+function domainSelector(domain){
+    // update the domain name
+    let domainName = document.getElementById('show-domain-button');
+    domainName.innerHTML = domain;
+}   
+let IMG = {{crop_images|tojson}}
+let ORIGINAL_IMG = {{original_image|tojson}}
+console.log("HELLO");
+var hist_method = "0"
+var imagedata = null;
+var segimagedata = null;
+var canvas = document.getElementById('cropCanvas');
+var ctx = canvas.getContext("2d");
+var canvas1 = document.getElementById('canvas1');
+var ctx1 = canvas1.getContext("2d");
+var canvas1Auto = document.getElementById('canvas1Auto');
+var ctx1Auto = canvas1Auto.getContext("2d");
+var cropImgText = document.getElementById('cropImgName');
+var cropImgTiff = document.getElementById('cropImgTiff');
+var cropImgTiffAuto = document.getElementById('cropImgTiffAuto');
+var cropImgMetaData = document.getElementById('cropImg');
+var gaussSigma = document.getElementById("gaussSigma");
+var gaussSigmaQ = document.getElementById("gaussSigmaQ");
+var gaussSigmaF = document.getElementById("gaussSigmaF");
+var kernalsize = document.getElementById("kernalsize");
+var maxDis = document.getElementById("maxDis");
+var scalefel = document.getElementById("scalefel");
+var minSize = document.getElementById("minSize");
+var ColorClustVal = document.getElementById("ColorClustVal");
+var ColorCluster = document.getElementById("ColorCluster");
+var RAGThreshVal = document.getElementById("RAGThreshVal");
+var RAGThresh = document.getElementById("RAGThresh");
+var rem_thresholdVal = document.getElementById("rem_thresholdVal");
+var rem_threshold = document.getElementById("rem_threshold");
+var EdgeSmoothVal = document.getElementById("EdgeSmoothVal");
+var EdgeSmooth = document.getElementById("EdgeSmooth");
+var CompactVal = document.getElementById("CompactVal");
+var Compact = document.getElementById("Compact");
+var seglvl = document.getElementById("seglvl");
+var SegLvlVal = document.getElementById("SegLvlVal");
+var featureSep = document.getElementById("featureSep");
+var featureSepVal = document.getElementById("featureSepVal");
+var segmentBtn = document.getElementById("segmentImage");
+var imageCropId = document.getElementById("imageCropId");
+var imgPanel = document.getElementById("imagePanel");
+//  var preImage = document.getElementById("previewImage");
+ var labelRef = document.getElementById("labelRef")
+ var pElement;
+ var chk = document.getElementById("checkboxid");
+ var segMethod = "1";
+ var lightCheckId = document.getElementById("LightAdjustmentCheckId");
+ var multiProcessing = document.getElementById("multiProcessingCheckID");
+ var lightAdjustText = document.getElementById("lightAdjust");
+ var target = document.getElementById("previewImage");
+
+$(document).ready(function() {
+// Initialize tooltip
+    $('#info-icon').tooltip({
+        title: function() {
+        return $('#cropImg').html(); // Fetch the content from #cropImg for the tooltip
+        }
+    });
+});
+
+function changeMode() {
+    const form = document.getElementById("modeForm");
+    const checkBox = document.getElementById("modeCheckbox");
+    if (checkBox.checked) {
+        $.ajax({
+            type: "POST",
+            url: "{{url_for('crop.getUserCropImages')}}",
+            success: function(response) {
+                var galleryElement = $('.my_slider');
+                galleryElement.remove();
+
+                var titlePanel = document.getElementById("titlePanel");
+                titlePanel.innerHTML = "";
+                var headerElement = document.createElement('h4')
+                headerElement.innerHTML = "Original Images";
+                titlePanel.appendChild(headerElement);
+
+                var sliderElement = document.createElement('div');
+                sliderElement.id = 'imageTopPanel'
+                sliderElement.className = 'my_slider';
+                var container = document.getElementById('containerDiv')
+                container.append(sliderElement);
+
+                $('.my_slider').slick({
+                    slidesToShow: 3,
+                    dots: true,
+                    centerMode: false,
+                    slidesToScroll: 1,
+                    adaptiveHeight: true,
+                    speed: 10,
+                    arrows: true, // enable default arrows
+                });
+                var len = response.images.length;
+                if (len > 0) {
+                    for (var i = 0; i < len; i++) {
+                        addImages(response.images[i].id,
+                        response.images[i].width,
+                        response.images[i].height,
+                        response.images[i].name,
+                        response.images[i].thumbnail_path,
+                        response.images[i].crop_grid_path,
+                        response.images[i].alias)
+                    }
+                }
+            }
+        })
+    }else{
+        form.method = "GET";
+        form.submit()
+    } 
+}
+
+function addImages(id,width,height, name, src, grid_path,alias, alt, sliderElement) {
+    var sliderElement = document.querySelector('.my_slider');
+
+    var galleryDiv = document.createElement("div")
+    galleryDiv.className = "gallery";
+  
+    var img = document.createElement("img");
+    img.id = id
+    img.src = "/static/"+src;
+    img.onclick = function() { openModalAuto(id); };
+    img.setAttribute('grid_path',  grid_path);
+    img.setAttribute('width',  width);
+    img.setAttribute('alias',  alias);
+    img.setAttribute('height',  height);
+    img.setAttribute('name',  name); // Set the thumbnail path attribute
+    img.style.cursor = "pointer";
+
+    galleryDiv.appendChild(img);
+    
+    var descDiv = document.createElement("div");
+    descDiv.className = "viewer-desc";
+    var descElement = document.createElement('p');
+    descElement.innerHTML = 'tbd'
+    descDiv.appendChild(descElement);
+    
+    sliderElement.appendChild(galleryDiv);
+
+      // Refresh the slick carousel to update the layout
+    $(".my_slider").slick("refresh");
+
+    // Add the 'slick-active' and 'slick-current' classes to the first image element
+    $(".my_slider .slick-list .slick-track:first-child").addClass("slick-slide slick-active slick-current");
+    var slickSlide = document.querySelector('.slick-slide');
+
+    // Set the width of the element
+    slickSlide.style.width = '256px';
+}
+
+
+$(document).ready(function() {
+
+    // Get the dropdown menu and div element
+    var menu = $("#menu");
+    var element = $("#quick_seg10");
+    var elementseg = $("#SLIC10");
+    var elementseg1 = $("#watershed_seg10");
+    var elementseg2 = $("#Felz_seg10");
+
+
+    // Handle the change event of the dropdown menu
+    menu.change(function() {
+        // Get the selected option value
+        var value = menu.val();
+        segMethod = menu.val();
+
+        // Toggle the visibility of the div element based on the selected option value
+        if (value == "1") {
+       
+            element.hide();
+            elementseg.hide();
+            elementseg1.show();
+            elementseg2.hide();
+        } 
+        else if (value == "2") {
+            element.hide();
+            elementseg.show();
+            elementseg1.hide();
+            elementseg2.hide();
+        }
+        else if (value == "3") {
+            element.show();
+            elementseg.hide();
+            elementseg1.hide();
+            elementseg2.hide();
+        }
+        
+        else {
+            elementseg1.hide();
+            elementseg.hide();
+            element.hide();
+            elementseg2.show();
+        }
+    });
+
+    $('input[name="RAGCheck"]').click(function(){
+        if($(this).prop("checked") == "1"){
+            $("#RAGOn").show();
+        }
+        else if($(this).prop("checked") == "0"){
+            $("#RAGOn").hide();
+        }
+    });
+
+    $('input[name="small_rem"]').click(function(){
+        if($(this).prop("checked") == "1"){
+            $("#SFROn").show();
+        }
+        else if($(this).prop("checked") == "0"){
+            $("#SFROn").hide();
+        }
+    });
+   
+
+
+    $('input[name="ColorClustCheck"]').click(function(){
+        if($(this).prop("checked") == "1"){
+            $("#ColorClustCheckOn").show();
+        }
+        else if($(this).prop("checked") == "0"){
+            $("#ColorClustCheckOn").hide();
+        }
+    });
+
+
+    $('.my_slider').slick({
+        slidesToShow: 10,
+        slidesToScroll: 1,
+        dots: false,
+        infinite: false,
+        adaptiveHeight: true,
+        arrows: true,
+        speed: 10,
+        responsive: [
+            {
+                breakpoint: 1800,
+                settings: {
+                slidesToShow: 7,
+                slidesToScroll: 2,
+                arrows: true,
+                infinite: false,
+                dots: true
+                }
+            },
+            {
+            breakpoint: 1500,
+            settings: {
+                slidesToShow: 7,
+                slidesToScroll: 2,
+                arrows: true,
+                infinite: false,
+                dots: true
+                }
+            },
+            {
+            breakpoint: 1000,
+            settings: {
+                slidesToShow: 5,
+                arrows: true,
+                slidesToScroll: 2
+                }
+            },
+            {
+            breakpoint: 600,
+            settings: {
+                slidesToShow: 2,
+                arrows: true,
+                slidesToScroll: 2
+                }
+            },
+            {
+            breakpoint: 480,
+            settings: {
+                slidesToShow: 1,
+                slidesToScroll: 1
+                }
+            }
+        ]
+    }).on('wheel', (function(e) {
+        e.preventDefault();
+        if (e.originalEvent.deltaY < 0) {
+            $(this).slick('slickNext');
+        } else {
+            $(this).slick('slickPrev');
+        }
+    }));
+
+
+    // Get the dropdown menu and div element
+    var menuRAG = $("#menuRAG");
+    // Handle the change event of the dropdown menu
+    menuRAG.change(function() {
+        // Get the selected option value
+        var value = menuRAG.val();
+
+        // Toggle the visibility of the div element based on the selected option value
+        if (value == "2") {
+        $("#RAGOn2").hide();
+        } else {
+        $("#RAGOn2").show();
+        }
+    });
+});
+
+
+
+if(imagedata == null){
+    ctx.font = "10px Verdana";
+    ctx.textAlign = "center";
+    ctx.fillText("Click an image to preview",150, 20);
+}
+
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
+
+
+$("#show-filters-button").click(function() {
+    $("#rtt").toggle(); /* toggle the visibility of the filters */
+});
+
+
+
+$("#slic-button").click(function() {
+    $("#SLIC").toggle(); /* toggle the visibility of the filters */
+});
+
+$("#quick_seg-button").click(function() {
+    $("#quick_seg").toggle(); /* toggle the visibility of the filters */
+});
+
+$("#Felz_seg-button").click(function() {
+    $("#Felz_seg").toggle(); /* toggle the visibility of the filters */
+});
+
+
+$("#post_p").click(function() {
+    $("#pp_seg").toggle(); /* toggle the visibility of the filters */
+});
+
+
+$("#water_seg").click(function() {
+    $("#watershed_seg").toggle(); /* toggle the visibility of the filters */
+});
+
+var imageLoaded = false; 
+function loadCropImage(imgs) {
+    cropImgText.innerHTML = imgs.alt;
+    var width = imgs.getAttribute('width');
+    var height = imgs.getAttribute('height');
+    var zoom = imgs.getAttribute('crop-size');
+    console.log(imgs)
+    cropImgMetaData.innerHTML = "Width: "+ width+ "<br>"+ "Height: "+height +"<br>" + "Zoom: " + zoom;
+    
+    var img_id = imgs.id;
+    console.log(img_id)
+    var crop_id = img_id
+    console.log(crop_id)
+    imageCropId.innerHTML = img_id;
+    var image = new Image(); // Using optional size for image
+    image.src = imgs.src;
+
+    image.onload = drawImageActualSize; // Draw when image has loaded
+    /*********************draw actual image in canvas*******************/
+    function drawImageActualSize() {
+        imagedata = this;
+        canvas.width = 512;
+        canvas.height = 512;
+        ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
+    }
+
+    if (gaussSigma.disabled || gaussSigmaQ.disabled || gaussSigmaF.disabled || featureSep.disabled || segmentBtn.disabled || ColorCluster.disabled || RAGThresh.disabled || EdgeSmooth.disabled || Compact.disabled || seglvl.disabled || kernalsize.disabled || maxDis.disabled || scalefel.disabled||minSize.disabled || rem_threshold.disabled){
+        gaussSigma.disabled = false;
+        gaussSigmaQ.disabled = false;
+        gaussSigmaF.disabled = false;
+        featureSep.disabled = false;
+        segmentBtn.disabled = false;
+        ColorCluster.disabled = false;
+        RAGThresh.disabled = false;
+        EdgeSmooth.disabled = false;
+        Compact.disabled  = false;
+        seglvl.disabled = false;
+        kernalsize.disabled = false;
+        maxDis.disabled = false;
+        scalefel.disabled=false;
+        minSize.disabled=false;
+        rem_threshold.disabled=false;
+    }
+    gaussSigma.value = 7;
+    gaussSigmaQ.value = 1.2;
+    gaussSigmaF.value = 0.8;
+    kernalsize.value = 3;
+    scalefel.value=1;
+    minSize.value=20;
+    maxDis.value = 10;
+ 
+      var RAGCheck = $('input[name="RAGCheck"]').prop('checked');
+      var small_rem = $('input[name="small_rem"]').prop('checked');
+      var HistCheck = $('input[name="HistCheck"]').prop('checked');
+      var AdapCheck = $('input[name="AdapCheck"]').prop('checked');
+      var ContrastStretchCheck = $('input[name="ContrastStretchCheck"]').prop('checked');
+      var LightAdjustmentCheck = $('input[name="LightAdjustmentCheck"]').prop('checked');
+      var MutliProcessingCheck = $('input[name="multiProcessingCheck"]').prop('checked');
+      var ColorClustCheck = $('input[name="ColorClustCheck"]').prop('checked');
+      var menuRAG = $("#menuRAG").val();
+      var menuColor = $("#menuColor").val();
+      rem_threshold.value=25;
+      seglvl.value =12;
+      Compact.value =5;
+      EdgeSmooth.value =0.5;
+      RAGThresh.value =10;
+      ColorCluster.value =5;
+      featureSep.value = 10;
+      gaussSigmaVal.innerHTML = gaussSigma.value;
+      gaussSigmaQVal.value = gaussSigmaQ.value;
+      gaussSigmaFVal.innerHTML = gaussSigmaF.value;
+      kernalsizeVal.value = kernalsize.value
+      scalefelVal.innerHTML = scalefel.value
+      minSizeVal.innerHTML = minSize.value
+      maxDisVal.value=maxDis.value
+      featureSepVal.innerHTML = featureSep.value;
+      ColorClustVal.value = ColorCluster.value;
+      RAGThreshVal.value = RAGThresh.value;
+      rem_thresholdVal.value = rem_threshold.value;
+      SegLvlVal.innerHTML = seglvl.value;
+      CompactVal.innerHTML = Compact.value;
+      EdgeSmoothVal.innerHTML = EdgeSmooth.value;
+
+    console.log("crop_id:",crop_id)
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        dataType : 'json',
+        data: {crop_image_id : crop_id},
+        url: "{{url_for('segment.getSegmentImages')}}",
+        success: function(response){
+
+            if (imgPanel.hasChildNodes()){
+                    removeAllChildNodes(imgPanel);
+            }
+
+            if (response.length == 0){
+                pElement = document.createElement("p");
+                pElement.innerText = "No segment images."
+                imgPanel.appendChild(pElement);
+            }else{
+                for (var i = 0; i < response.length; i++) {
+                    console.log(response[i]);
+                    var divElement = document.createElement("div");
+                    divElement.className = "gallery";
+
+                    var imgElement = document.createElement("img");
+                    data_path = response[i].marked_image_path;
+                    imgElement.src = '/static/'+data_path;
+                    divElement.appendChild(imgElement);
+
+                    var descElement= document.createElement("div");
+                    descElement.className = "desc";
+                    descElement.style = "height:265px;";
+                    if (response[i].segment_method == 1) {
+                        descElement.innerHTML = "<b> Segment Method: </b> Watershed" + "<br/> &emsp; Feature Separation: " + response[i].param1 + "<br/> &emsp; Gauss Sigma: " + response[i].param3;
+                    }
+                    if (response[i].segment_method == 2) {
+                        descElement.innerHTML = "<b> Segment Method: </b> SLIC" + "<br/> &emsp; Segmentation Level: " + response[i].param1 + "<br/> &emsp; Compacting: " + response[i].param2 + "<br/> &emsp; Gauss Sigma: " + response[i].param3;
+                    }
+                    if (response[i].segment_method == 3) {
+                        descElement.innerHTML = "<b> Segment Method: </b> Quickshift" + "<br/> &emsp; Kernal Size: " + response[i].param1 + "<br/> &emsp; Max Distance: " + response[i].param2 + "<br/> &emsp; Gauss Sigma: " + response[i].param3;
+                    }
+                    if (response[i].segment_method == 4) {
+                        descElement.innerHTML = "<b> Segment Method: </b> Felzenszwalb" + "<br/> &emsp; Scale: " + response[i].param1 + "<br/> &emsp; Min Size: " + response[i].param2 + "<br/> &emsp; Gauss Sigma: " + response[i].param3;
+                    }
+                    if (response[i].rag_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Merging Method: </b>Threshold Cut" + "<br/> &emsp; Merge Threshold: " + response[i].rag_threshold;
+                    }else if (response[i].rag_method == 2) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/><b> Merging Method: </b> Normalized Cut";
+                    }else if (response[i].rag_method == 3) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Merging Method: </b> Hierarchical" + "<br/> &emsp; Merge Threshold: " + response[i].rag_threshold;
+                    }
+                    if (response[i].small_rem_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Small Feature Removal" + "<br/> &emsp; Remove Threshold: " + response[i].small_rem_threshold;
+                    }
+                    if (response[i].contrast_stretch == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Contrast Streching </b>";
+                    }
+
+                    if (response[i].color_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b>Color Clustering :</b>" + "Adaptive <br/> &emsp; No. of Clusters: " + response[i].clusters;
+                    }else if (response[i].color_method == 2) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b>Color Clustering :</b>" + "K-means <br/> &emsp; No. of Clusters: " + response[i].clusters;
+                    }
+                    if (response[i].hist_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Light Adjustment: </b> <span class='tickspan'> &#10003;</span> <br/>&emsp; Histogram Equalization";
+                    }else if (response[i].hist_method == 2) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Light Adjustment: </b> <span class='tickspan'>&#10003;</span> <br/> &emsp; Adaptive Equalization";
+                    }else if (response[i].hist_method == 3) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Light Adjustment: </b> <span class='tickspan'>&#10003;</span> <br/> &emsp; CLAHE";
+                    }
+          
+                    var segment_date = response[i].name.replace(/[^0-9|_]/g, '').split('_');
+                    descElement.innerHTML = descElement.innerHTML + "<br/> <b>Date Created: </b>" + segment_date[2]+'-'+segment_date[0]+'-'+segment_date[1];
+                    descElement.style.textAlign = 'left';
+                    divElement.appendChild(descElement);
+
+                    imgPanel.appendChild(divElement);
+                    labelRef.href = '/label/?crop_image_id='+crop_id;
+                }
+            }
+        }
+    })
+}
+function openModal(id) {
+    var button = document.getElementById("button"+id);
+    var x = button.getAttribute('width');
+    var y = button.getAttribute('height');
+    var crop_size = button.getAttribute('crop-size');
+    var original_image_id = button.getAttribute('original-id');
+
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: {
+            original_image_id : original_image_id
+        },
+        url: "{{url_for('original.getOriginalImageById')}}",
+        success: function(response) {
+
+            var original_image = response;
+
+            var OG_height = original_image.height;
+            var OG_width = original_image.width;
+            var alias = original_image.width;
+            var thumbnail_src = '/static/' + original_image.thumbnail_path;
+            console.log(thumbnail_src);
+            cropImgTiff.innerHTML = "";
+            $("#myModal .modal-body").html("");
+            var image = new Image(); // Using optional size for image
+            image.src = thumbnail_src;
+            image.onload = drawImageActualSize; // Draw when image has loaded
+
+            /*********************draw actual image in canvas*******************/
+            function drawImageActualSize() {
+                var button = document.getElementById(id);
+                console.log(button);
+                var x = button.getAttribute('width');
+                var y = button.getAttribute('height');
+                canvas1.width = OG_width/10;
+                canvas1.height = OG_height/10;
+                console.log("drawImageActualSize called");
+                console.log("canvas1 width:", canvas1.width);
+                console.log("canvas1 height:", canvas1.height);
+                imagedata = this;
+                
+                ctx1.fillStyle = 'red';
+                ctx1.fillRect(20, 20, 350, 100);
+                ctx1.drawImage(this, 0, 0, canvas1.width, canvas1.height);
+                var rectX = (x-crop_size)/10;
+                var rectY = (y-crop_size)/10;
+                var rectWidth = crop_size/10;
+                var rectHeight = crop_size/10;
+                console.log("rectX:", rectX);
+                console.log("rectY:", rectY);
+                console.log("rectWidth:", rectWidth);
+                console.log("rectHeight:", rectHeight);
+
+                ctx1.beginPath();
+                ctx1.lineWidth = 2;
+                ctx1.strokeStyle = "red";
+                ctx1.rect(rectX, rectY, rectWidth, rectHeight);
+                ctx1.stroke();
+            }
+            $("#myModal .modal-body").append(canvas1);
+            $("#myModal").modal("show");
+                }
+    });
+    console.log(thumbnail_src);
+
+}
+
+
+function closeModal(modalElement) {
+    modalElement.style.display = "none";
+}
+          
+var mouseXAuto=0;
+var mouseYAuto=0;
+var currentMouseDownHandler = null;  // global variable to keep track of current handler
+
+function deleteCropImage(crop_image_id){
+    const crop_image_element = document.getElementById(crop_image_id);
+    const parent_element = crop_image_element.parentNode;
+    if (confirm("Warning deleting this image will delete all related segmented images as well. This can not be undone.")){
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: {
+                crop_image_id:crop_image_id
+            },
+            url: "{{url_for('crop.deleteCropImage')}}",
+            success: function(response) {
+                if (response.status == 200) {
+                    parent_element.remove();
+                    alert(response.message);
+                }
+                else if(response.status == 400)
+                {
+                    alert(response.error);
+                }
+            
+            }  
+        });
+    }
+}
+
+function openModalAuto(id) {
+    var img = document.getElementById(id);
+    var crop_grid_path = img.getAttribute('grid_path');
+    img.onload = null;
+
+    var image = new Image(); 
+    image.src = "/static/"+crop_grid_path;
+    image.onload = drawImageActualSize;
+
+    function drawImageActualSize() {
+        var width = img.getAttribute('width');
+        var height = img.getAttribute('height');
+        var crop_size = current_research_field['grid_size']
+
+        if ((height % crop_size) < parseInt(crop_size*0.8)){
+            height -= height%crop_size
+        }
+        if ((width % crop_size) < parseInt(crop_size*0.8)){
+            width  -= width % crop_size
+        }
+        canvas1Auto.width = width/8;
+        canvas1Auto.height = height/8;
+
+        ctx1Auto.drawImage(image, 0, 0, canvas1Auto.width, canvas1Auto.height);
+    }
+
+    function mouseDownHandler(e) {
+        var mouseXAuto = e.clientX - canvas1Auto.getBoundingClientRect().left;
+        var mouseYAuto = e.clientY - canvas1Auto.getBoundingClientRect().top;
+
+        // Clear the previous red circle by redrawing the image
+        ctx1Auto.clearRect(0, 0, canvas1Auto.width, canvas1Auto.height);
+        ctx1Auto.drawImage(image, 0, 0, canvas1Auto.width, canvas1Auto.height);
+
+        ctx1Auto.beginPath();
+        ctx1Auto.arc(mouseXAuto, mouseYAuto, 5, 0, 2 * Math.PI);
+        ctx1Auto.fillStyle = 'red';
+        ctx1Auto.fill();
+        ctx1Auto.stroke();
+
+        var image_id = parseInt(id);
+        var click_x = parseInt(mouseXAuto);
+        var click_y = parseInt(mouseYAuto);
+        var grid_length = parseInt(img.getAttribute('width'));
+        var grid_height = parseInt(img.getAttribute('height'));
+
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: {
+                click_x: click_x,
+                click_y: click_y,
+                image_id: image_id,
+                grid_length: grid_length,
+                grid_height: grid_height
+            },
+            url: "{{url_for('crop.getAutoCropImage')}}",
+            success: function(response) {
+                if (response.status == 200) {
+                    var imgObj = response.image;
+                    var crop_size = imgObj.crop_size;
+                    //var alias = img.getAttribute('alias');
+                    //var light = img.getAttribute('light');
+                    var OG_name = img.getAttribute('name');
+                    var image = document.createElement("img");
+                    image.src = "/static/"+imgObj.visualization_path;
+                    image.alt = OG_name;
+                    image.id = imgObj.id;
+                    image.setAttribute("crop-size", crop_size);
+                    image.setAttribute("width", imgObj.width);
+                    image.setAttribute("height", imgObj.height);
+                    loadCropImage(image);
+                } else {
+                    alert(response.error);
+                }
+            }  
+        });
+    }
+
+    // Remove the old event listener before adding a new one
+    if (currentMouseDownHandler) {
+        canvas1Auto.removeEventListener('mousedown', currentMouseDownHandler);
+    }
+
+    canvas1Auto.addEventListener('mousedown', mouseDownHandler);
+
+    // Save the new handler as the current one
+    currentMouseDownHandler = mouseDownHandler;
+
+    $("#autoCropContainer").show();
+    $("#closeButton").on("click", function() {
+        $("#autoCropContainer").hide();
+    });
+}
+
+
+
+
+
+function closeModalAuto(modalElement) {
+    modalElement.style.display = "none";
+}
+/*
+    marked boundary function
+*/
+function savePre(confirmNum) {
+    // get ID of cropped image
+    var getImgCropId = document.getElementsByName("imageCropName");
+    id = getImgCropId[0].innerHTML;
+    console.log(getImgCropId[0])
+
+    var param1 = 0;
+    var param2 = 0;
+    var param3 = 0;
+
+    // convert form to array
+    var form = $("#segmentForm");
+    var formid = $("#segmentForm").attr('id');
+    var form_data = form.serializeArray();
+
+    // Region Merging checked
+    var menuRAG = $("#menuRAG").val();
+
+    // For Color Clustering
+    var menuColor = $("#menuColor").val();
+
+    
+    var chk = document.getElementById("checkboxid");
+    var menu = $("#menu");
+    var value = menu.val();
+    var multiProcess = document.getElementById("multiProcessingCheckID");
+    
+    //var multiProcess = $('input[name="multiProcessingCheckID"]').prop('checked');
+    if (value == "1") {
+        param1 = featureSep.value;
+        param2 = 0;
+        param3 = gaussSigma.value;
+    }else if (value == "2") {
+        param1 = seglvl.value;
+        param2 = Compact.value;
+        param3 = EdgeSmooth.value;
+    }else if (value == "3") {
+        param1 = kernalsize.value;
+        param2 = maxDis.value;
+        param3 = gaussSigmaQ.value;
+    }else {
+        param1 = scalefel.value;
+        param2 = minSize.value;
+        param3 = gaussSigmaF.value;
+    }
+    // var target = document.getElementById("previewImage");
+    target.innerHTML='';
+    lightAdjustText.style.display = "none";
+    var confirmNum1 = confirmNum
+    form_data.push({name: 'id',
+                    value: id},
+                    {name: 'menuRAG',
+                    value: menuRAG},
+                    {name: 'menuColor',
+                    value: menuColor},
+                    {name: 'confirm',
+                    value: confirmNum},
+                    {name: 'param1',
+                    value: param1},
+                    {name: 'param2',
+                    value: param2},
+                    {name: 'param3',
+                    value: param3},
+                    {name: 'multiProcessingCheck',
+                    value: multiProcess.checked});
+    console.log(typeof form_data)
+    $.ajax({
+        type: 'POST',
+        contentType: 'application/json',
+        dataType : 'json',
+        data: JSON.stringify(form_data),
+        url: "{{url_for('segment.previewSegmentImage')}}",
+                  
+        beforeSend: function() {
+        if (confirmNum == 1){
+            $('#saveModal').modal('show');
+            $('#wait').show();
+            }
+        },
+        success: function(response){
+            $('#wait').hide();
+            if (response.status == 199) {
+                if (confirm(response.error)){
+                    savePre(1);  
+                }     
+            }else if(response.status == 100){
+                savePre(1) 
+            }else{
+                if (response.status == 400){
+                    alert(response.error);
+                    }
+                else{
+                    $('#saveModal').modal('show');
+
+                    if (lightCheckId.checked) {
+                        lightAdjustText.style.display = "block";
+                    } else {
+                        lightAdjustText.style.display = "none";
+                    }
+                    var s = "";
+                    for (var i = 0; i < response.length; i++) {
+
+                        var newimage = new Image();
+                        newimage.onload = function () {
+                            ctx.drawImage(newimage, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
+                        }
+                        s += '<div class = "preview" style="margin: 5px;"><img onclick = "showImageValue(event)" id = "'+i+'"   src = " '+'data:image/png;base64,' + response[i].image+ '" /><div class = "desc" style = "font-size: 12px; margin: 5px;""> '+  response[i].hist_name+'</div></div> '
+                    }
+                    $('#previewImage').html(s);
+                }
+            }
+        }
+    })
+}
+
+function gaussSigmaInput(slideObj){
+  gaussSigmaVal.innerHTML = slideObj.value;
+}
+function gaussSigmaQInput(slideObj){
+  gaussSigmaQVal.value = slideObj.value;
+}
+gaussSigmaQVal.addEventListener("input", function(){
+    gaussSigmaQ.value = gaussSigmaQVal.value;
+});
+function gaussSigmaFInput(slideObj){
+  gaussSigmaFVal.innerHTML = slideObj.value;
+}
+
+function kernalsizeInput(slideObj){
+    kernalsizeVal.value = slideObj.value;
+}
+kernalsizeVal.addEventListener("input", function(){
+    kernalsize.value = kernalsizeVal.value;
+});
+function maxDisInput(slideObj){
+    maxDisVal.value = slideObj.value;
+}
+maxDisVal.addEventListener("input", function(){
+    maxDis.value = gaussSigmvaQVal.value;
+});
+function scalefelInput(slideObj){ scalefel
+    scalefelVal.innerHTML = slideObj.value;
+}
+function minSizeInput(slideObj){
+    minSizeVal.innerHTML = slideObj.value;
+}
+var previousHighlightedImage;
+
+function showImageValue(event) {
+    var image = event.target;
+    hist_method = image.id;
+    if (previousHighlightedImage) {
+        previousHighlightedImage.classList.remove("highlight");
+    }
+    image.classList.add("highlight");
+    previousHighlightedImage = image;
+}
+  
+function savePreview(){
+    var getImgCropId = document.getElementsByName("imageCropName");
+    id = getImgCropId[0].innerHTML;
+    var form = $("#segmentForm");
+    var formid = $("#segmentForm").attr('id');
+    var form_data = form.serializeArray();
+    var menuRAG = $("#menuRAG").val();
+    var menuColor = $("#menuColor").val();
+    var chk = document.getElementById("checkboxid");
+    var param1 = 0;
+    var param2 = 0;
+    var param3 = 0;
+    var menu = $("#menu");
+    var value = menu.val();
+    if (value == "1") {
+        param1 = featureSep.value;
+        param2 = 0;
+        param3 = gaussSigma.value;
+    } 
+    else if (value == "2") {
+        param1 = seglvl.value;
+        param2 = Compact.value;
+        param3 = EdgeSmooth.value;
+    }
+    else if (value == "3") {
+        param1 = kernalsize.value;
+        param2 = maxDis.value;
+        param3 = gaussSigmaQ.value;
+    }
+    
+    else {
+        param1 = scalefel.value;
+        param2 = minSize.value;
+        param3 = gaussSigmaF.value;
+    }
+    form_data.push({name: 'id',
+                    value: id},{name: 'menuRAG',
+                    value: menuRAG},{name: 'menuColor',
+                    value: menuColor},{name: 'hist_method', value: hist_method},
+                    {name: 'param1',
+                    value: param1},
+                    {name: 'param2',
+                    value: param2},
+                    {name: 'param3',
+                    value: param3});
+    $.ajax({
+        type: 'POST',
+        contentType: 'application/json',
+        dataType : 'json',
+        data: JSON.stringify(form_data),
+        url: "{{url_for('segment.saveSegmentImage')}}",
+        success: function(response){
+            if (response.status == 404){
+                alert(response.error);}
+            else{
+                if (response.status == 200){
+                    $('#saveModal').modal('hide');
+
+                    if (imgPanel.contains(pElement)){
+                        imgPanel.removeChild(pElement);
+                    }
+
+                    var imgObj = response.image;
+                    data_path = imgObj.marked_image_path;
+                    var divElement = document.createElement("div");
+                    divElement.className = "gallery";
+
+                    var imgElement = document.createElement("img");
+                    imgElement.src = '/static/'+data_path;
+                    divElement.appendChild(imgElement);
+
+                    var descElement= document.createElement("div");
+                    descElement.className = "desc";
+                    if (imgObj.segment_method == 1) {
+                        descElement.innerHTML = "<b> Segment Method: </b> Watershed" + "<br/> &emsp; Feature Separation: " + imgObj.param1 + "<br/> &emsp; Gauss Sigma: " + imgObj.param3;
+                    }
+                    if (imgObj.segment_method == 2) {
+                        descElement.innerHTML = "<b>Segment Method: </b> SLIC" + "<br/> &emsp; Segmentation Level: " + imgObj.param1 + "<br/> &emsp; Compacting: " + imgObj.param2 + "<br/> &emsp; Gauss Sigma: " + imgObj.param3;
+                    }
+                    if (imgObj.segment_method == 3) {
+                        descElement.innerHTML = "<b> Segment Method: </b> Quickshift" + "<br/> &emsp; Kernal Size: " + imgObj.param1 + "<br/> &emsp; Max Distance: " + imgObj.param2 + "<br/> &emsp; Gauss Sigma: " + imgObj.param3;
+                    }
+                    if (imgObj.segment_method == 4) {
+                        descElement.innerHTML = "<b> Segment Method: </b> Felzenszwalb" + "<br/> &emsp; Scale: " + imgObj.param1 + "<br/> &emsp; Min Size: " + imgObj.param2 + "<br/> &emsp; Gauss Sigma: " + imgObj.param3;
+                    }
+                    if (imgObj.rag_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Merging Method: </b> Threshold Cut" + "<br/> &emsp; Merge Threshold: " + imgObj.rag_threshold;
+                    }else if (imgObj.rag_method == 2) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Merging Method: </b> Normalized Cut";
+                    }else if (imgObj.rag_method == 3) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Merging Method: </b> Hierarchical" + "<br/> &emsp; Merge Threshold: " + imgObj.rag_threshold;
+                    }
+                    if (imgObj.small_rem_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Small Feature Removal" + "<br/> &emsp; Remove Threshold: " + imgObj.small_rem_threshold;
+                    }
+                    if (imgObj.contrast_stretch == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Contrast Streching </b> ";
+                    }
+
+                    if (imgObj.color_method == 1) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Color Clustering: </b> Adaptive" + "<br/> &emsp; No. of Clusters: " + imgObj.clusters;
+                    }else if (imgObj.color_method == 2) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Color Clustering: </b> K-means" + "<br/> &emsp; No. of Clusters: " + imgObj.clusters;
+                    }
+                    if (imgObj.hist_method == 1) { 
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Light Adjustment: </b> <span class='tickspan'> &#10003;</span> <br/> &emsp; Histogram Equalization";
+                    }else if (imgObj.hist_method == 2) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Light Adjustment: </b> <span class='tickspan'> &#10003;</span> <br/> &emsp; Adaptive Equalization";
+                    }else if (imgObj.hist_method == 3) {
+                        descElement.innerHTML = descElement.innerHTML + "<br/> <b> Light Adjustment: </b> <span class='tickspan'> &#10003;</span> <br/> &emsp; CLAHE";
+                    }
+                    var segment_date = imgObj.name.replace(/[^0-9|_]/g, '').split('_');
+                    descElement.innerHTML = descElement.innerHTML + "<br/> <b>Date Created: </b>" + segment_date[2]+'-'+segment_date[0]+'-'+segment_date[1];
+                    descElement.style.textAlign = 'left';
+                    divElement.appendChild(descElement);
+                    imgPanel.prepend(divElement);
+                    labelRef.href = '/label/?crop_image_id='+id;
+                }
+            }
+        }
+    })
+}
+
+
+
+function featureSepInput(slideObj){
+    featureSepVal.innerHTML = slideObj.value;
+}
+function SegLvlInput(slideObj){
+    SegLvlVal.innerHTML = slideObj.value;
+}
+function CompactInput(slideObj){
+    CompactVal.innerHTML = slideObj.value;
+}
+function EdgeSmoothInput(slideObj){
+    EdgeSmoothVal.innerHTML = slideObj.value;
+}
+function RAGThreshInput(slideObj){
+    RAGThreshVal.value = slideObj.value;
+}
+RAGThreshVal.addEventListener("input", function(){
+    RAGThresh.value = RAGThreshVal.value;
+});
+function rem_thresholdInput(slideObj){
+    rem_thresholdVal.value = slideObj.value;
+}
+rem_thresholdVal.addEventListener("input", function(){
+    rem_threshold.value = rem_thresholdVal.value;
+});
+function ColorClustInput(slideObj){
+    ColorClustVal.value = slideObj.value;
+}
+ColorClustVal.addEventListener("input", function(){
+    ColorCluster.value = ColorClustVal.value;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,600 @@
+// comparison section 
+$compareWindowWidth: 90vw;
+
+.compare-operation {
+    @include block;
+    background-color: $bgColor;
+    margin: 5vh auto;
+    height: 90vh;
+    width: $compareWindowWidth;
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem;
+    position: relative;
+
+    .compare-section-cross {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+    }
+
+    .compare-img-list {
+        background-color: burlywood;
+        width: calc($compareWindowWidth*0.19);
+        height: 100%;
+        overflow-y: scroll;
+
+        .compare-img {
+            width: calc($compareWindowWidth*0.18);
+            aspect-ratio: 1 / 1;
+            background-size: contain;
+        }
+    }
+
+    .compare-right,
+    .compare-left {
+        background-color: rgba(153, 205, 50, 0.277);
+        width: 38%;
+        height: 100%;
+        position: relative;
+    }
+
+    .compare-right-drop,
+    .compare-left-drop {
+        height: 100%;
+        width: 100%;
+        background-color: black;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        opacity: 0;
+    }
+
+    .compare-right-info,
+    .compare-left-info {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 0;
+    }
+
+    .compare-right {
+        background-color: rgba(218, 165, 32, 0.265);
+        width: 38%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .comparing-card {
+        height: 100%;
+        width: 100%;
+
+        .comparing-img {
+            height: 50%;
+            aspect-ratio: 1/1;
+            background-size: contain;
+            margin: 10px auto;
+            border-radius: 10px
+        }
+
+        .comparing-detail {
+            padding: 2vh 0;
+            height: 50%;
+            margin: 0 auto;
+            aspect-ratio: 1 / 1;
+        }
+    }
+
+}
+
+// label section 
+.label-operation {
+    background-color: $bgColor;
+    margin: 5vh auto;
+    height: 90vh;
+    width: 90vw;
+
+    .label-dashboard {
+        display: flex;
+
+
+        .label-left {
+            padding: 1.3rem;
+
+            .labels {
+                position: relative;
+
+                .image-zoom-btn {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    cursor: pointer;
+                }
+
+                .active {
+                    text-shadow: 2px 2px rgba(255, 0, 0, .5);
+                }
+            }
+
+            .label-left__labeling_and_zoom {
+                position: relative;
+
+                .zoom-img {
+                    .img-zoom-lens {
+                        position: absolute;
+                        border: 1px solid #585858;
+                        /*set the size of the lens:*/
+                        width: 40px;
+                        height: 40px;
+                    }
+
+                    #image-zoom {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        z-index: 0;
+                        width: 50vh;
+                        height: 50vh;
+                    }
+
+                }
+
+
+                .labeling-img {
+                    position: relative;
+                    z-index: 1;
+
+                    #segCanvas {
+                        width: 50vh;
+                        height: 50vh;
+                        object-fit: cover;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+
+
+
+
+        .statistics-top {
+            display: flex;
+
+
+            &__original_crop_image {
+                width: 26vw;
+                height: 37vh;
+                margin: 10px;
+                padding: 10px;
+                position: relative;
+
+                .img-zoom-result {
+                    border: 1px solid #d4d4d4;
+                    /*set the size of the result div:*/
+                    width: 28vh;
+                    height: 28vh;
+                    margin: 1.4rem;
+                }
+
+                .zoomin {
+                    position: absolute;
+                    top: 6rem;
+                    right: 4rem;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+
+
+                }
+
+                .zoomout {
+                    position: absolute;
+                    top: 13rem;
+                    right: 4rem;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
+            }
+
+            &__statistics_chart {
+                display: flex;
+                position: relative;
+                width: 26vw;
+                height: 37vh;
+
+                .label-statistics {
+                    width: 26vw;
+                    height: 37vh;
+                    margin: 10px;
+                    padding: 10px;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                }
+
+                .fa-chart-pie {
+                    position: absolute;
+                    top: 25px;
+                    right: 4px;
+                    z-index: 3;
+                    cursor: pointer;
+                }
+
+                .fa-chart-simple {
+                    position: absolute;
+                    top: 25px;
+                    right: 35px;
+                    z-index: 3;
+                    cursor: pointer;
+                }
+
+                .active {
+                    text-shadow: 2px 2px rgba(255, 0, 0, .5);
+                }
+            }
+
+
+        }
+
+        .operation-bot {
+            display: flex;
+            height: 26vh;
+
+            .setting-save {
+                width: 26vw;
+                height: 100%;
+                margin: 10px;
+                position: relative;
+            }
+
+            .auto-label-section {
+                width: 26vw;
+                height: 100%;
+                margin: 10px;
+                position: relative;
+
+                .select-model {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 20px 0px;
+                }
+            }
+        }
+
+        .close-label {
+            position: absolute;
+            right: 19px;
+            bottom: 5px;
+        }
+
+    }
+
+
+}
+
+// save label section
+.save-label-section {
+    display: none;
+    position: absolute;
+    right: 37%;
+    z-index: 1001;
+
+    .save-training-cross {
+        position: absolute;
+        top: 25px;
+        right: 32px;
+    }
+}
+
+// segmentation section
+.segment-dashboard {
+    display: flex;
+
+    .segment-img-preview {
+        @include block;
+        position: relative;
+        height: 80vh;
+        width: 80vw;
+        margin: 50px auto;
+        background-color: #fff;
+
+        .preview-image {
+            width: 400px;
+            display: block;
+            margin: auto;
+        }
+
+        .preview-top-row,
+        .preview-bot-row {
+            display: flex;
+            justify-content: space-around;
+
+            .preview-card-mult {
+                padding: 10px;
+                width: 100%;
+                transition: all 0.3s linear;
+
+                .preview-mult-image {
+                    width: 14vw;
+                    display: block;
+                    margin: auto;
+                }
+
+                &:hover {
+                    background-color: $bgColor;
+                }
+            }
+
+        }
+
+
+
+        .mark-cancel-btn {
+            position: absolute;
+            right: 110px;
+            bottom: 10px;
+        }
+
+        .mark-save-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+        }
+    }
+
+    .left-col {
+        width: 30vw;
+        overflow: hidden;
+
+        .algorithm-selector {
+            margin: 2vh 3vw;
+        }
+
+        .setting {
+            height: 60vh;
+            position: relative;
+            margin: 2vh 3vw;
+
+            form {
+                overflow-x: hidden;
+                overflow-y: scroll;
+                height: 80%;
+
+                &::-webkit-scrollbar {
+                    background-color: $bgColor;
+                    outline: 1px $textColor;
+                    border-radius: 50px;
+                    width: 10px;
+
+                }
+
+                &::-webkit-scrollbar-thumb {
+                    background: #d5d5d5;
+                    border: 1px solid $textColor;
+                    border-radius: 10px;
+                }
+
+                &::-webkit-scrollbar-track {
+                    background: $bgColor;
+                    border-radius: 50px;
+                }
+            }
+
+            .rangeInput[type='number'] {
+                margin-top: 9px;
+                display: block;
+                border: 0;
+                width: 50px;
+            }
+
+            .algorithm-setting {
+                width: 400%;
+                display: flex;
+                overflow: hidden;
+
+                .alogrithm-block {
+                    width: 25%;
+                }
+            }
+
+            .mark-boundary {
+                position: absolute;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    }
+
+    .right-col {
+        width: 50vw;
+        position: relative;
+
+        .no-segment-yet {
+            position: absolute;
+            z-index: 1;
+            font-size: 48px;
+            color: $separateLineColor;
+            top: 43%;
+            left: 20%;
+        }
+
+        .boundary-img-gallery {
+            margin: 2vh 3vw;
+            height: 88%;
+            position: relative;
+
+            .boundary-img-gallery-title {
+                .compare-btn {
+                    position: absolute;
+                    top: 30px;
+                    right: 27px;
+                }
+            }
+
+            .seg-library {
+                width: 100%;
+
+                .Gallery {
+                    $tableWidth: 42vw;
+                    padding: 0;
+                    height: 90%;
+                    width: $tableWidth;
+                    overflow: hidden;
+
+                    .top-row,
+                    .bot-row {
+                        height: 50%;
+                        display: flex;
+                        transition: all 0.5s linear;
+                        margin-bottom: 15px;
+
+                        .seg-card {
+                            background-color: #fff;
+                            padding: calc($tableWidth* 0.005);
+                            transition: all 0.3s linear;
+                            font-size: 16px;
+
+                            .seg-img {
+                                width: calc($tableWidth* 0.24);
+                                height: calc($tableWidth* 0.24);
+                                border-radius: 5px;
+                                background-size: contain;
+
+                                &:hover .hoverBG {
+                                    opacity: 1;
+                                    background-color: rgba(201, 201, 201, 0.5);
+                                }
+                            }
+
+                            .seg-detail {
+                                position: relative;
+                                height: 45px;
+
+                                &-name {
+                                    font-size: large;
+                                    font-weight: 600;
+                                }
+
+                                &-date {
+                                    position: absolute;
+                                    right: 5px;
+                                    top: 5px;
+                                    font-size: small;
+                                }
+
+                                &-hide-btn {
+                                    position: absolute;
+                                    right: 5px;
+                                    bottom: 5px;
+                                    font-size: small;
+
+
+
+                                }
+
+                                &:hover .seg-detail-hide {
+                                    visibility: visible;
+                                    opacity: 0.8;
+                                    z-index: 100;
+                                }
+
+                                &-hide-btn-icon {
+                                    font-size: smaller;
+                                    color: #7c7c7c;
+                                }
+
+                                &-hide {
+                                    visibility: hidden;
+                                    opacity: 0;
+                                    background-color: black;
+                                    color: #fff;
+                                    border-radius: 6px;
+                                    padding: 5px 10px;
+                                    position: absolute;
+                                    width: calc($tableWidth* 0.24);
+                                    height: calc($tableWidth* 0.24);
+                                    left: 0;
+                                    top: calc($tableWidth* 0.24*(-1));
+                                    float: left;
+                                    font-size: smaller;
+                                    transition: all 0.3s linear;
+                                    overflow-y: scroll;
+
+                                    &::-webkit-scrollbar {
+                                        background-color: var(--text-color);
+                                        outline: 1px var(--text-color);
+                                        border-radius: 50px;
+                                        width: 5px;
+                                    }
+
+                                    &::-webkit-scrollbar-thumb {
+                                        background: rgba(0, 0, 0, 0.8);
+                                        border: 1px solid $textColor;
+                                        border-radius: 10px;
+                                    }
+
+                                    &::-webkit-scrollbar-track {
+                                        background: $bgColor;
+                                        border-radius: 50px;
+                                    }
+
+                                    .reverse-setting-btn {
+                                        margin-top: 0.3rem;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+        .page-switch-arrow {
+            display: flex;
+
+            .page-switch-arrow-btn {
+                width: 30px;
+                height: 30px;
+                border-radius: 100%;
+                background-color: #fff;
+                text-align: center;
+                line-height: 34px;
+                transition: all 0.3s linear;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: #b2b2b2;
+                    transform: scale(1.2);
+                }
+            }
+
+            .arrow-left {
+                position: absolute;
+                top: 50%;
+            }
+
+            .arrow-right {
+                position: absolute;
+                top: 50%;
+                right: 0;
+            }
+
+        }
+
+    }
+
+
+}

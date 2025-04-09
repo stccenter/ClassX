@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/homepage.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/image_table.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/homepage_segment.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>
+    <script src="https://kit.fontawesome.com/5fc8e4bcd5.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/canvasjs.min.js') }}"></script>
+    <script>
+        /*
+        input: key, value;
+        output: DOM object
+        */
+        function formatData(key, value){
+            let keySpan = document.createElement("span");
+            let valueSpan = document.createElement("span");
+            let span = document.createElement("span");
+            let info = document.createElement("li");
+            keySpan.setAttribute("class","fw-600");
+            span.innerHTML = " : ";
+            keySpan.innerHTML = key;
+            valueSpan.innerHTML = value;
+            info.appendChild(keySpan);
+            info.appendChild(span);
+            info.appendChild(valueSpan);
+            return info;
+        }
+
+        /*
+            notification system
+        */
+
+        function notification(text,BGcolor,color,fontSize){
+            let notificationBlock = document.querySelector(".notification");
+            notificationBlock.style.animationName ="fadeIn";
+            notificationBlock.style.backgroundColor = BGcolor;
+            notificationBlock.style.color = color;
+            notificationBlock.style.fontSize = fontSize;
+            notificationBlock.innerHTML = text;
+            setTimeout(()=> {
+                notificationBlock.style.animationName ="fadeOut";
+            }
+            ,2000);
+        }
+    </script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <div class="dashboard-sideBar">
+            <div class="dashboard-sideBar__preview">
+                <img src="" alt="">
+            </div>
+            <div class="dashboard-sideBar__switchBar">
+                <div class="switchBtn backHome">
+                    <i class="fa fa-house"></i>
+                    <a style="font-size:1rem; color:#374754"> Return </a>
+                </div>
+                <div class="switchBtn Homepage">
+                    <i class="fa fa-chart-area"></i>
+                    <a style="color:#374754"> Statistics </a>
+                </div>
+                <div class="switchBtn croppedImage">
+                    <i class="fa-solid fa-crop-simple"></i>
+                    <a style="color:#374754"> Cropped Image Library </a>
+                </div>
+            
+            </div>
+
+        </div>
+        <div class="dashboard-container">
+            <div class="notification">
+            </div>
+            {% block content %} {% endblock %}
+        </div>
+    </div>
+    <script src="https://kit.fontawesome.com/5fc8e4bcd5.js" crossorigin="anonymous"></script>
+    <script  src="{{ url_for('static', filename='js/homepage.js') }}" crossorigin="anonymous"> </script>
+    <script crossorigin="anonymous">
+        const sideBarPreviewImage = document.querySelector(".dashboard-sideBar__preview");    
+        const homeBtn = document.querySelector(".Homepage");
+        const cropPageBtn = document.querySelector(".croppedImage");
+        const segmentationPageBtn = document.querySelector(".SegmentedImage");
+        const backHomeBtn = document.querySelector(".backHome");
+
+
+
+        backHomeBtn.addEventListener("click", function(){
+            window.location.href = `/dashboard`;
+        })
+        homeBtn.addEventListener("click", function(){
+            window.location.href = `/dashboard/${IMG.id}`
+        })
+
+        cropPageBtn.addEventListener("click", function(){
+            window.location.href = `/dashboard/${IMG.id}/crop`;
+        })
+
+        sideBarPreviewImage.style.backgroundImage = `url(/static/${IMG.thumbnail_path})`;
+    
+        
+    </script>
+    <script  src="{{ url_for('static', filename='js/dropDownTable.js') }}" crossorigin="anonymous"> </script>
+</body>
+
+</html>

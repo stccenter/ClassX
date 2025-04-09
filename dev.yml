@@ -1,0 +1,185 @@
+services:
+# ---------- Frontend ----------
+  react:
+    container_name: nginx-react
+    build:
+      context: ./
+      dockerfile: docker/dev/react/Dockerfile
+    volumes:
+      - ./docker/dev/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/dev/nginx/conf/classx.conf:/etc/nginx/conf.d/classx.conf
+    depends_on:
+      appx:
+        condition: service_started
+    ports:
+      - "80:80"
+    networks:
+      - frontend
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=development
+      - VITE_CDN_URL=${VITE_CDN_URL}
+
+# ---------- MySQL ----------
+  dbx:
+    container_name: dbx
+    build: ./docker/dev/db/
+    volumes:
+      - appdb-data:/var/lib/mysql
+      - ./docker/dev/db/mysql-init:/docker-entrypoint-initdb.d
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_DATABASE=${DB}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_USER=${MYSQL_ROOT_USER}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-hdbx", "-u'$MYSQL_ROOT_USER'", "-p'$MYSQL_ROOT_PASSWORD'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - backend
+
+# ---------- Keycloak ----------
+  kcx:
+    container_name: kcx
+    restart: always
+    build: ./docker/dev/kc
+    environment:
+      - KC_DB=mysql
+      - KC_DB_URL=jdbc:mysql://dbx:3306/keycloak_db
+      - KC_DB_URL_HOST=dbx
+      - KC_DB_URL_DATABASE=keycloak_db
+      - KC_DB_USERNAME=${MYSQL_ROOT_USER} #temp
+      - KC_DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KEYCLOAK_USER=usertest
+      - KEYCLOAK_PASSWORD=usertest
+      - KC_HOSTNAME_URL=${KEYCLOAK_HOST_URL}
+      - KC_HOSTNAME_DEBUG=true
+      - KC_FEATURES=admin-fine-grained-authz,token-exchange
+
+    command: ${KC_DEV}
+    ports:
+      - 8080:8080
+    volumes:
+      - kcx-data:/opt/keycloak/data/
+    depends_on:
+      dbx:
+        condition: service_healthy
+    networks:
+      - backend
+      - frontend
+
+# ---------- ClassX ----------
+  appx:
+    container_name: appx
+    build:
+      context: ./
+      dockerfile: docker/dev/app/Dockerfile_triple
+      target: runtime-dev
+    command: python3 -u app.py
+    ports:
+      - 5000:5000
+    volumes: # <-- For hot reloads
+      # - envx-data:/venv/bin
+      - ./flaskr:/app/flaskr
+      - ./classxlib:/app/classxlib
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./config.py:/app/config.py
+      - ./app.py:/app/app.py
+    depends_on:
+      kcx:
+        condition: service_started
+      # envx:
+      #   condition: service_completed_successfully
+    env_file:
+      - ./.env
+    restart: on-failure
+    networks:
+      - frontend
+      - backend
+
+
+# ---------- Redis ----------
+  redis:
+    container_name: redis
+    build: ./docker/dev/redis
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+    env_file:
+      - ./.env
+  
+# ---------- Celery ----------
+  worker:
+    container_name: worker
+    build:
+      context: ./
+      dockerfile: docker/dev/app/Dockerfile_triple
+    command: celery -A tasks.celery worker -l info -E --concurrency=2
+    env_file:
+      - ./.env
+    environment:
+      CELERY_BROKER_URL: ${CELERY_REDIS_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_REDIS_URL}
+    depends_on:
+      redis:
+        condition: service_started
+      appx:
+        condition: service_started
+      # envx:
+      #   condition: service_completed_successfully
+    volumes:
+      # - envx-data:/venv/bin
+      - .:/app
+    networks:
+      - backend
+
+  mask-rcnn-cpu:
+    container_name: mask-rcnn-cpu
+    build:
+      context: ./
+      dockerfile: docker/dev/mask-rcnn/Dockerfile-cpu
+    command: python -u /app/modellib/mask_rcnn_app.py # Testing flask dummy app
+    volumes: # <-- For hot reloads
+      # - envx-data:/venv/bin
+      - ./classxlib:/app/modellib/classxlib
+      - ./modellib/__init__.py:/app/modellib/__init__.py
+      - ./modellib/trainlib:/app/modellib/trainlib
+      - ./modellib/trained_models:/app/modellib/trained_models
+      - ./modellib/mask_rcnn_app.py:/app/modellib/mask_rcnn_app.py
+      - ./modellib/model_dir.json:/app/modellib/model_dir.json
+    environment:
+      - USE_CPU=true # Custom environment variable to indicate CPU use
+    restart: on-failure
+    networks:
+      - backend
+    ports:
+      - "5002:5002" # Map container port 5002 to host port 5002
+    
+    # Uncomment and modify if volumes needed
+    #volumes:
+    #  - /path/to/volume:/path/inside/container  
+
+volumes:
+  d_appx-data:
+  appx-data:
+  appdb-data:
+  kcx-data:
+  # envx-data:
+
+networks:
+  backend:
+    name: backend 
+    driver: bridge
+  frontend:
+    name: frontend
+    driver: bridge

@@ -1,0 +1,43 @@
+@import 'variable';
+@import 'config';
+@import 'user-base';
+@import 'user-friends';
+@import 'user-profile';
+@import 'error';
+@import 'dashboard-base';
+@import 'dashboard-statistics';
+@import 'dashboard-crop';
+@import 'dashboard-segment';
+@import 'homepage_base';
+@import 'dashboard-help';
+@import 'homepage_aboutus';
+@import 'homepage_contact';
+@import 'homepage_home';
+@import 'homepage_login';
+@import 'homepage_register';
+@import 'homepage_pricing';
+@import 'view-dataset';
+@import 'responsive';
+@import 'error';
+@import 'document-base';
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+
+    &:link,
+    &:visited,
+    &:hover,
+    &:active {
+        color: #000;
+    }
+}
+
+li {
+    list-style: none;
+}

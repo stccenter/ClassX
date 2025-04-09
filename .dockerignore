@@ -1,0 +1,11 @@
+.git
+.env
+lib/***
+test/**
+archive/**
+#docker/**
+# environment/**
+__pycache__/**
+flask_session/**
+static/images/default/**
+static/images/user_images/**

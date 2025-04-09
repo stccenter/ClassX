@@ -1,0 +1,213 @@
+services:
+# ---------- NGINX ----------
+#  nginx:
+#    container_name: nginx
+#    image: nginx:latest
+#    volumes:
+#      - ./docker/prod/nginx/nginx.conf:/etc/nginx/nginx.conf
+#      - ./docker/prod/nginx/classx.conf:/etc/nginx/conf.d/classx.conf
+#      - ./docker/prod/nginx/certs:/etc/ssl/private
+#    depends_on:
+#      - appx
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    networks:
+#      - classx_frontend
+#    restart: on-failure
+
+# ---------- Frontend ----------
+  react:
+    container_name: nginx-react
+    build:
+      context: ./
+      dockerfile: docker/prod/react/Dockerfile
+    volumes:
+      - ./docker/prod/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/prod/nginx/conf/classx.conf:/etc/nginx/conf.d/classx.conf
+      - ./docker/prod/nginx/certs:/etc/ssl/private
+
+    depends_on:
+      - kcx
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - classx_frontend
+    restart: on-failure
+    env_file:
+     - ./.env
+    environment:
+      - NODE_ENV=development
+      - VITE_CDN_URL=${VITE_CDN_URL}
+
+# ---------- MySQL Database ----------
+  dbx:
+    container_name: dbx
+    build: ./docker/prod/db/
+      #context: ./
+      #dockerfile: docker/prod/db/Dockerfile
+    volumes:
+      - appdb-data:/var/lib/mysql
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_DATABASE=label_db
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_USER=${MYSQL_ROOT_USER}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-hdbx", "-u'$MYSQL_ROOT_USER'", "-p'$MYSQL_ROOT_PASSWORD'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - classx_backend
+    env_file:
+      - ./.env
+
+# ---------- Keycloak ----------
+  kcx:
+    container_name: kcx
+    build:
+      context: ./
+      dockerfile: docker/prod/kc/Dockerfile
+    environment:
+      - KC_DB=mysql
+      - KC_DB_URL=${OAUTH_DB_URL}
+      - KC_DB_URL_HOST=dbx
+      - KC_DB_URL_DATABASE=${OAUTH_DB}
+      - KC_DB_USERNAME=${MYSQL_ROOT_USER} #temp
+      - KC_DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KEYCLOAK_USER=usertest
+      - KEYCLOAK_PASSWORD=usertest
+      - KC_HOSTNAME_URL=${KC_SOURCE_URL} #use url full
+      - KC_HOSTNAME_DEBUG=true
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HTTP_ENABLED=false
+      - KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/conf/server.crt
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/conf/server.key
+      - KC_HOSTNAME_ADMIN_URL=${KC_SOURCE_URL}
+    command: start #prod
+    expose:
+      - "8443"
+      - "8080"
+    volumes:
+      - kcx-data:/opt/keycloak/data/
+      - ./docker/prod/nginx/certs/__stcenter_net_cert.cer:/opt/keycloak/conf/server.crt
+      - ./docker/prod/nginx/certs/__stcenter_net_interm.cer:/opt/keycloak/conf/truststores/trustedcert.crt
+      - ./docker/prod/nginx/certs/star_stcenter_net.key:/opt/keycloak/conf/server.key
+    depends_on:
+      dbx:
+        condition: service_healthy
+    restart: always
+    networks:
+      - classx_backend
+      - classx_frontend
+
+
+# Redis
+  redis:
+    container_name: redis
+    build: ./docker/dev/redis
+    networks:
+      - classx_backend
+    env_file:
+      - ./.env
+
+# ---------- ClassX ----------
+  appx:
+    container_name: appx
+    build:
+      context: ./
+      dockerfile: docker/prod/app/Dockerfile
+        #dockerfile: docker/dev/app/Dockerfile_triple
+        #target: runtime-dev
+    #command: "gunicorn --workers 2 --threads 4 -b appx:5000 'wsgi:crate_app()'"
+    #command: sleep infinity
+    expose:
+      - "5000"
+    volumes:
+      - ./classxlib:/app/classxlib
+      #- appx-data:/app
+      #- ./static/images/user_images:/app/static/images/user_images
+      - user-images:/app/static/images/user_images
+
+    depends_on:
+      kcx:
+        condition: service_started
+    env_file:
+      - ./.env
+    restart: on-failure
+    networks:
+      - classx_backend
+      - classx_frontend
+
+  mask-rcnn-cpu:
+    container_name: mask-rcnn-cpu
+    build:
+      context: ./
+      dockerfile: docker/dev/mask-rcnn/Dockerfile-cpu
+    command: python -u /app/modellib/mask_rcnn_app.py # Testing flask dummy app
+    volumes: # <-- For hot reloads
+      # - envx-data:/venv/bin
+      - ./classxlib:/app/modellib/classxlib
+      - ./modellib/__init__.py:/app/modellib/__init__.py
+      - ./modellib/trainlib:/app/modellib/trainlib
+      - ./modellib/trained_models:/app/modellib/trained_models
+      - ./modellib/mask_rcnn_app.py:/app/modellib/mask_rcnn_app.py
+      - ./modellib/model_dir.json:/app/modellib/model_dir.json
+    environment:
+      - USE_CPU=true # Custom environment variable to indicate CPU use
+    restart: on-failure
+    networks:
+      - classx_backend
+    expose:
+      - "5002" # Expose port 5002 to classx_backend docker network
+
+  # Celery
+  worker:
+    container_name: worker
+      #image: classxtool-appx:latest
+    build:
+      context: ./
+      dockerfile: docker/prod/app/Dockerfile
+    command: celery -A tasks.celery worker -l info -E --concurrency=2
+    env_file:
+      - ./.env
+    environment:
+      CELERY_BROKER_URL: ${CELERY_REDIS_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_REDIS_URL}
+    depends_on:
+      redis:
+        condition: service_started
+      appx:
+        condition: service_started
+    volumes:
+      - ./classxlib:/app/classxlib
+      #- ./static/images/user_images:/app/static/images/user_images
+      #- appx-data:/app
+      - user-images:/app/static/images/user_images
+    networks:
+      - classx_backend
+
+volumes:
+  appdb-data:
+  kcx-data:
+  appx-data:
+  user-images:
+
+networks:
+  classx_backend:
+    name: classx_backend
+    driver: bridge
+    external: true
+
+  classx_frontend:
+    name: classx_frontend
+    driver: bridge
+    external: true
+

@@ -1,0 +1,49 @@
+/* 
+    option 1: 
+    1. img move right, get large a 
+    2. info display from right side of img    
+*/
+
+tbody td {
+    padding-bottom: 0;
+}
+
+#imageTable tr td:first-of-type {
+    padding-bottom: 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    transition: 400ms ease;
+    overflow: scroll;
+    width: 207px;
+}
+
+#imageTable tr td:first-of-type div {
+    display: inline-block;
+    padding: 4px;
+    color: #e2e2e2;
+    background-color: #22202082;
+    font-size: 10px;
+    opacity: 0;
+    /* height: 100%; */
+    transition: 2s ease;
+    transform: translateX(100%);
+}
+
+#imageTable tr td:first-of-type::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+#imageTable tr td:first-of-type:hover {
+    transform: scale(1.5) translate(15%, -17%);
+}
+
+#imageTable tr td:first-of-type:hover div {
+    opacity: 1;
+    transform: translateX(10%);
+    -webkit-transform: translateX(10%);
+    -moz-transform: translateX(10%);
+    -ms-transform: translateX(10%);
+    -o-transform: translateX(10%);
+    display: flex;
+}

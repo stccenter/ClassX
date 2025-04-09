@@ -1,0 +1,8 @@
+{
+    "2":{
+        "model_name":"mask-rcnn",
+        "model_alias":"solar_model",
+        "research_field":"heliophysics",
+        "directory":"solar_model_v2.pth"
+    }
+}

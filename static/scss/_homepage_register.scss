@@ -1,0 +1,75 @@
+.accntReg * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial;
+    background-color: $offWhiteBg;
+}
+.accntReg {
+    margin-top: 60px;
+
+    .registerContainer {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px; 
+        margin: 50px auto;
+       
+        h2 {
+            margin-bottom: 20px;
+            color: black;
+        }
+        
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .column {
+            flex: 1;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        
+        .column:last-child {
+            margin-right: 0;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .createAccnt {
+            margin-top: 20px; 
+            margin-bottom: 10px; 
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+          
+          &:hover {
+             background-color: #0056b3;
+          }
+        }
+    }
+    
+    
+    
+    
+}

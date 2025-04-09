@@ -1,0 +1,17 @@
+{
+    "Member":{
+        "permissions":{
+            "placeholder":1
+        }
+    },
+    "Moderator":{
+        "permissions":{
+            "placeholder":1
+        }
+    },
+    "Admin":{
+        "permissions":{
+            "placeholder":1
+        }
+    }
+}

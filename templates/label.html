@@ -1,0 +1,1082 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="page-header">
+        <h4>Segmented Images</h4>
+    </div>
+    <div id="alert-placeholder"></div>
+    <div class="my_slider">
+        {% for seg_obj,uploader_name, date_created in packed: %}
+        <div title="img_{{seg_obj.id}}" class="viewer">
+
+          <p id ="segMethod_{{seg_obj.id}}" hidden>{{seg_obj.segment_method}}</p>
+          <p id ="featureSep_{{seg_obj.id}}" hidden>{{seg_obj.feature_separation}}</p>
+          <p id ="gaussSigma_{{seg_obj.id}}" hidden>{{seg_obj.gauss_sigma}}</p>
+          <p id ="segLevel_{{seg_obj.id}}" hidden>{{seg_obj.segmentation_level}}</p>
+          <p id ="compacting_{{seg_obj.id}}" hidden>{{seg_obj.compacting}}</p>
+          <p id ="edgeSmoothing_{{seg_obj.id}}" hidden>{{seg_obj.edge_smoothing}}</p>
+          <p id ="ragMethod_{{seg_obj.id}}" hidden>{{seg_obj.rag_method}}</p>
+          <p id ="ragThreshold_{{seg_obj.id}}" hidden>{{seg_obj.rag_threshold}}</p>
+          <p id ="histMethod_{{seg_obj.id}}" hidden>{{seg_obj.hist_method}}</p>
+          <p id ="contrastStretch_{{seg_obj.id}}" hidden>{{seg_obj.contrast_stretch}}</p>
+          <p id ="colorMethod_{{seg_obj.id}}" hidden>{{seg_obj.color_method}}</p>
+          <p id ="clusters_{{seg_obj.id}}" hidden>{{seg_obj.clusters}}</p>
+          <p id ="zoom{{seg_obj.id}}" hidden>{{seg_obj.zoom}}</p>
+          <p id ="Image_crop_id" hidden >{{seg_obj.cropped_image_id}}</p>
+          
+
+            <img
+                id="img_{{seg_obj.id}}"
+                src="{{ url_for('static', filename= seg_obj.marked_image_path ) }}"
+                alt="{{seg_obj.name}}"
+                crop_id = "{{seg_obj.crop_image_id}}"
+                style="cursor: pointer;"
+                onclick="loadSegmentImage(this)">
+            <div class="viewer-desc">
+              <p>
+                {% if seg_obj.shared_by is not none%}
+                <b>Shared by: </b>{{uploader_name}}
+                {% endif %}
+                <br>
+                <b>Date Created: </b>{{date_created}}
+              </p>
+          </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="col">
+        <div class="row gx-3 gy-2 align-items-center" style="border: 1px black;width:auto;">
+            <div class="segmentCol">
+                <label class="form-label" for="contrast" style="display:block;">Label Opacity</label>
+                <div id="contrastSlider">
+                    <input
+                        id="contrast"
+                        class="form-range"
+                        type="range"
+                        max="1.0"
+                        min="0"
+                        step="0.05"
+                        value="{{opacity}}"
+                        onchange="updateOpacity(this.value)"
+                        style="cursor: pointer;"
+                        disabled
+                    >
+                </div>
+              </div>
+            <div class="segmentCol">
+              <input type="checkbox" id="small-area-merge" name="small-area-merge" enbale />
+              <label for="small-area-merge">Small Area Merge</label>
+              <div id="smallAreaSlider" style="display: flex; align-items: center;">
+                  <input
+                      id="smallArea"
+                      class="form-range"
+                      type="range"
+                      max=".25"
+                      min="0"
+                      step="0.01"
+                      value="0.00"
+                      style="cursor: pointer;"
+                      oninput="this.nextElementSibling.value = this.value"
+                  >
+                  <output style="width: 15px">0.00</output>
+              </div>
+            </div>
+            <div class="segmentCol">
+                <label for="fileType">Select type:</label>
+                <select id="fileType" class="drop-down" aria-label="Default select example" style="width: 100px;">
+                    <option value="HDF5">HDF5</option>
+                    
+                </select>
+            </div>
+            <div class="segmentCol">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn action-button" id="saveLabel">
+                    Save
+                </button>
+            </div>
+            <div class="segmentCol">
+              <div title="Auto label - Lets the user auto label the segments.">
+                <button id="auto_seg" class="btn action-button" type="button">
+                    Auto Label
+                </button>
+            </div>
+          </div>
+            <div id="auto_label" style="display:none;" title="Probability Threshold - he minimum probability needed for the model to label the segment.">
+              <div style="display: flex;">
+                <div style="display: block; padding: 10px;">
+        
+                  <label class="form-label" for="PThreshold" style="display:block;">Probability Threshold</label>
+                  <input
+                      type="range"
+                      class="form-range"
+                      id="PThreshold"
+                      max="1"
+                      min="0"
+                      step="0.01"
+                      name="prob_threshold"
+                      value="0.7"
+                      oninput="PThresholdInput(this)"
+                      style="display:block; cursor: pointer;"
+                      disabled
+                  >
+                  <p id="PThresholdVal"></p>
+                </div>
+                
+                <div style="display: block; ">
+               <label for="model_selection" style="display:block;">Model Selection:</label>
+              <select id="model_selection" class="form-select" style="display:block; cursor: pointer;">
+                  <option value="1">Random Forest</option>
+                  <option value="0">SVM</option>
+                  <option value="2">XGBoost</option>
+                  <option value="3">KNN</option>
+              </select>
+            </div>
+            <div style="display: block; ">
+              <label for="label_file_selection" style="display:block;">Training File Selection:</label>
+             <select id="label_file_selection" class="form-select" style="display:block; cursor: pointer;">
+               {% for training_file in training_files: %}
+                 <option value="{{training_file.id}}"> {{training_file.file_name}} </option>
+               {% endfor %}
+             </select>
+           </div>
+            <div class="segmentCol" style="  margin-top: 10px; margin-left: 10px;">
+              <button id="auto_seg1" class="action-button" type="button" onclick="Auto_Label()" style="margin-bottom: 10px;">
+                Confirm
+               </button>
+            </div>
+            </div>    
+          </div>
+      
+    
+            <!-- Modal -->
+            <div
+                class="modal fade"
+                id="saveModal"
+                tabindex="-1"
+                aria-labelledby="exampleModalLabel"
+                aria-hidden="true"
+            >
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Save Labeling</h5>
+                            <button
+                                type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                                onclick="reset()"
+                            ></button>
+                        </div>
+                        <div class="modal-body" id="saveModalBody">
+                            <div class="row">
+                                <div class="col">
+                                    How do you want to save your labeling?
+                                </div>
+                                <div class="col">
+                                    <select
+                                        id="saveType"
+                                        onchange="showNextOption(this)"
+                                        class="form-select"
+                                        aria-label="Default select example"
+                                    >
+                                        <option value="1">Create New</option>
+                                        <option value="2">Append to Existing</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row" id="colDetails">
+                                <div class="col">
+                                    <p>Provide a file name:</p>
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="labelFileName" class="form-control" style="cursor: pointer;">
+                                </div>
+                            </div>
+                            <div id="filealert-placeholder"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <!-- <button type="button" class="btn btn-primary">Save</button> -->
+                            <div class="segmentCol">
+                                <button id="saveData" class="action-button" onclick="saveFile()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end label -->
+        </div>
+        <div class="row gx-3 gy-2 align-items-center">
+          <!-- precision by 2 digits step by 0.01 -->
+          <form id="segmentForm" method="post">
+              <p id="imageSegId" name="imageCropName" hidden></p>
+              <!--classColors = ['#71b8eb', '#b1ddfc', '#707070', "#fff5a8", '#8d56ba', "#d97796"]-->
+              <div class="segmentCol">
+                <!-- This area gets the label map from the domain and creates the label buttons -->
+                {% for label in label_map: %}
+                  {% if label.name != "Selected" and label.name != "Unselected" %}
+                  <div class="segmentCol">
+                    <label
+                      id="{{label.name}}Btn_{{label.id}}"
+                      class="labelClass action-button"
+                      name="{{label.name}}"
+                      background="{{label.color}}"
+                      textcolor = "{{label.textcolor}}"
+                      labelid = "{{label.id}}"
+                      onclick= "changeSelectedLabel(this)"
+                      style="background-color: {{label.color}}; color: {{label.textcolor}}; border 1px solid #cacaca"
+                    >{{label.name}}</label>
+                  </div>
+                  {% endif %}
+                {% endfor %}
+            <div class="segmentCol">
+              <label
+                  id="nextSegment"
+                  class="btn action-button"
+                  onclick="goNext()"
+                  disabled
+              >Next Segment</label>
+          </div>
+          <div class="segmentCol">
+            <label
+            id="labelSelect"
+            class="labelClass action-button" 
+            currentlabelid = "None"
+            style="background-color: gray; color: #fdfdfd; border 1px solid #cacaca"
+            >No Selected Label</label>
+              
+          </div>
+          </form>
+      </div>
+
+        <div class="row mt-1">
+            <div class="col">
+              <div class="origCard image-card">
+                  <table class="table table-sm" style="margin-bottom: 0;">
+                    <tbody>
+                      <tr>
+                        <td  style="padding: .5rem;">
+                          Total Segments:
+                          <span id="totalSegs" style="font-family:verdana;">0</span>
+                        </td>
+                        <td  style="padding: .5rem;">
+                          Labeled Segments:
+                          <span id="labelSegs" style="font-family:verdana">0</span>
+                        </td>
+                        <td  style="padding: .5rem;">
+                          Unlabeled Segments:
+                          <span id="unlabelSegs" style="font-family:verdana">0</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                    <div class="card-body">
+                        <canvas id="segCanvas" style="width: 512px; height: 512px;object-fit: cover; cursor:pointer;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+              <div class="cropCard image-card">
+                  <div style="display: flex; justify-content: start; border: 1px solid var(--border); padding-inline: .5rem; padding-top: .5rem;">
+                      <button id="displayCroppedImage" onclick="displayCroppedImage()" style="background: none; border: none;">
+                          <i class="fas fa-image" style="font-size: 1.5em; margin-right: .5em; color: var(--primary);"></i> <!-- Icon for Display Cropped Image -->
+                      </button>
+                      <button id="displayPieChart" onclick="displayPieChart()" style="background: none; border: none;">
+                          <i class="fas fa-chart-pie" style="font-size: 1.5em; margin-right: .5em; color: var(--primary);"></i> <!-- Icon for Display Pie Chart -->
+                      </button>
+                      <button id="displayBarGraph" onclick="displayBarGraph()" style="background: none; border: none;">
+                          <i class="fas fa-chart-bar" style="font-size: 1.5em; color: var(--primary);"></i> <!-- Icon for Display Bar Graph -->
+                      </button>
+                  </div>
+                  <div class="card-body">
+                      <div class="col-6" style="width: 512px; height: 512px;object-fit: cover;">
+                          <canvas id="preCanvas_"></canvas>
+                          <div id="pieChartContainer" style="display: block; height: 512px;width: 512px"></div>
+                          <div id="chartContainer" style="display:block; height: 512px;width: 512px"></div>                  
+                      </div>
+                  </div>
+              </div>
+          </div>          
+                      </div>
+        </div>
+    </div>
+</div>  
+</div>
+<script
+    type="text/javascript"
+    src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"
+></script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+<script>
+  var imagedata = null;
+  var segimagedata = null;
+  var loadedImage = null;
+
+  var canvas = document.getElementById('segCanvas');
+  var ctx = canvas.getContext("2d");
+
+  var imageSegId = document.getElementById("imageSegId");
+  var nextSegment = document.getElementById("nextSegment");
+  var currentLabel = document.getElementById("labelSelect")
+  var saveData = document.getElementById('saveData');
+  
+  var contrastSlider = document.getElementById('contrast');
+  var prob_threshold = document.getElementById("PThreshold");
+  var unlabelSegs2;
+
+  var totalSegments, labeledSegments, unlabeledSegments;
+  var label,count;
+  var image_click;
+
+  function displayCroppedImage() {
+    document.getElementById('preCanvas_').style.display = "block";
+    document.getElementById('pieChartContainer').style.display = "none";
+    document.getElementById('chartContainer').style.display = "none";
+}
+
+function displayPieChart() {
+    document.getElementById('preCanvas_').style.display = "none";
+    document.getElementById('pieChartContainer').style.display = "block";
+    document.getElementById('chartContainer').style.display = "none";
+}
+
+function displayBarGraph() {
+    document.getElementById('preCanvas_').style.display = "none";
+    document.getElementById('pieChartContainer').style.display = "none";
+    document.getElementById('chartContainer').style.display = "block";
+}
+
+ const class_dict = {{label_map}};
+ console.log(class_dict)
+
+$("#auto_seg").click(function() {
+    $("#auto_label").toggle(); /* toggle the visibility of the filters */
+  });
+
+
+  $("#auto_seg1").click(function() {
+    $("#auto_label").toggle(); /* toggle the visibility of the filters */
+  });
+
+
+  function showSuccess(message) {
+            $('#alert-placeholder').html('<div class="alert alert-success alert-dismissible fade show" style="margin:35px;"><strong>Success! </strong>'+ message +'  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+         }
+
+         function showError(message) {
+            $('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible fade show" style="margin:35px;"><strong>Error! </strong>'+ message +'  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+         }
+         
+         function showFileNameError(message) {
+            $('#filealert-placeholder').html('<div class="alert alert-danger alert-dismissible fade show" style="margin:10px;"><strong>Error! </strong>'+ message +'  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+         }
+
+
+
+$('.my_slider').slick({
+      slidesToShow: 10,
+      slidesToScroll: 1,
+      dots: false,
+      infinite: false,
+      adaptiveHeight: true,
+      speed: 10,
+      responsive: [
+    {breakpoint: 1800,
+      settings: {
+        slidesToShow: 5,
+        slidesToScroll: 2,
+        infinite: false,
+        dots: true
+      }},
+      {
+      breakpoint: 1500,
+      settings: {
+        slidesToShow: 5,
+        slidesToScroll: 2,
+        infinite: false,
+        dots: true
+      }
+    },
+    {
+      breakpoint: 1000,
+      settings: {
+        slidesToShow: 5,
+        slidesToScroll: 2
+      }
+    },
+    {
+      breakpoint: 600,
+      settings: {
+        slidesToShow: 2,
+        slidesToScroll: 2
+      }
+    },
+    {
+      breakpoint: 480,
+      settings: {
+        slidesToShow: 1,
+        slidesToScroll: 1
+      }
+    }
+  ]
+  }).on('wheel', (function(e) {
+  e.preventDefault();
+  if (e.originalEvent.deltaY < 0) {
+    $(this).slick('slickNext');
+  } else {
+    $(this).slick('slickPrev');
+  }
+}));
+function updateOpacity(value) {
+  // Get the boundary element
+  var opacity_value = value
+  segment_image_id = imageSegId.innerHTML;
+  console.log(opacity_value)
+  console.log(segment_image_id)
+  $.ajax({
+    type: 'GET',
+    contentType: 'application/json',
+    dataType : 'json',
+    //pass only seg id
+    data: {segment_image_id : segment_image_id,
+      opacity_value: opacity_value
+            },
+    url: "{{url_for('label.updateLabelOpacity')}}",
+    success: function(response){
+
+        var segObj = new Image();
+        segObj.onload = function(){
+          ratio = this.height/this.width
+          ctx.canvas.width = 4096;
+          ctx.canvas.height = ctx.canvas.width * ratio;
+          ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+        segObj.src = 'data:image/png;base64,'+response.image_string;
+
+    }
+  })
+  
+}
+
+
+function reset(){
+  document.getElementById("labelFileName").value = "";
+  var electElement = document.querySelector('#saveType');
+  electElement.value = "1";
+  var target = document.getElementById("filealert-placeholder");
+  target.innerHTML='';
+}
+
+$("#saveLabel").click(function () {
+  segment_image_id = imageSegId.innerHTML;
+    $.ajax({
+      type: 'GET',
+      contentType: 'application/json',
+      dataType : 'json',
+      data: {
+        segment_image_id : segment_image_id,
+      },
+      url: "{{url_for('label.checkSegmentLabel')}}",
+      success: function(response){
+        console.log(response)
+        if(unlabelSegs2 !=0){
+          if (confirm("Not all segments are labeled. Unlabeled segments are assigned to 'Unknown' class. Please click OK to confirm.")){
+            saveUnknown(segment_image_id);
+            $('#saveModal').modal('show'); 
+          }
+        }
+        else{
+          $('#saveModal').modal('show');
+        } 
+      }
+    })
+ });
+ function saveUnknown(segment_image_id) {
+  
+  segment_image_id = segment_image_id;
+    /* 
+    Small label stuff
+    */
+    const remove_small_labels = document.getElementById("small-area-merge")?.checked || false
+    const area_removal_percentage = document.getElementById("smallArea").value || 0
+    $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            data: {
+              segment_image_id : segment_image_id,
+              remove_small_labels,
+              area_removal_percentage,
+                    },
+            url: "{{url_for('label.setUnlabeledUnknown')}}",
+            success: function(response){
+              loadSegmentImage(image_click);
+          }
+          })
+
+ }
+ function updateOpacity(value) {
+    // Get the boundary element
+    var opacity_value = value
+    segment_image_id = imageSegId.innerHTML;
+    console.log(opacity_value)
+    $.ajax({
+      type: 'GET',
+      contentType: 'application/json',
+      dataType : 'json',
+      //pass only seg id
+      data: {segment_image_id : segment_image_id,
+        opacity_value: opacity_value
+              },
+      url: "{{url_for('label.updateLabelOpacity')}}",
+      success: function(response){
+
+        var segObj = new Image();
+        segObj.onload = function(){
+          ratio = this.height/this.width
+          ctx.canvas.width = 4096;
+          ctx.canvas.height = ctx.canvas.width * ratio;
+          ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+        segObj.src = 'data:image/png;base64,'+response.image_string;
+
+      } 
+    })
+   
+  }
+
+function Auto_Label() {
+  segment_image_id = imageSegId.innerHTML;
+  var segment_image_id = segment_image_id;
+  var Model_sel = document.querySelector('#model_selection');
+  var label_file_sel = document.querySelector('#label_file_selection')
+  algo_id = Model_sel.value;
+  training_file_id = label_file_sel.value;
+  console.log(algo_id);
+  PThresholdVal.innerHTML = prob_threshold.value;
+  var prob_threshold1 = prob_threshold.value
+  console.log(segment_image_id);
+  console.log(prob_threshold1);
+  $.ajax({
+    type: 'GET',
+    contentType: 'application/json',
+    dataType : 'json',
+    data: {
+      segment_image_id : segment_image_id,
+      prob_threshold: prob_threshold1,
+      algorithm_id: algo_id,
+      training_file_id : training_file_id
+    },
+    url: "{{url_for('train.autoLabelImage')}}",
+      success: function(response){
+      loadSegmentImage(image_click);
+    }
+  })
+}
+function PThresholdInput(slideObj){
+  PThresholdVal.innerHTML = slideObj.value;
+}
+
+
+function changeSelectedLabel(labelButton){
+    currentLabel.style.backgroundColor=labelButton.getAttribute("background");
+    currentLabel.style.color=labelButton.getAttribute("textcolor");
+    console.log(currentLabel.currentlabelid);
+    currentLabel.currentlabelid = labelButton.getAttribute("labelid");
+    console.log(currentLabel.currentlabelid);
+    currentLabel.innerHTML = "Selected Label:" + labelButton.getAttribute("name");
+    //currentLabel.outerHTML = "<label id=labelSelect; class=labelClass; action-button style=background-color:#" + labelButton.getAttribute("background") +"; color: #"+ labelButton.getAttribute("textcolor")+ "; border 1px solid #cacaca> Selected Label:" + labelButton.getAttribute("name") +"</label>"
+
+}
+
+function loadSegmentImage(imgs) {
+  nextSegment.disabled = false;
+  contrastSlider.disabled = false;
+  prob_threshold.disabled=false;
+  image_click = imgs
+
+  loadedImage = imgs;
+  var img_id = imgs.id;
+  var segment_image_id = img_id.split('_')[1]
+  console.log("img_id: ",img_id)
+  console.log("segment_image_id: ",segment_image_id)
+  var crop_image_id = imgs.getAttribute("crop_id");
+
+  imageSegId.innerHTML = segment_image_id;
+  var image = new Image(); // Using optional size for image
+  image.src = imgs.src; // image is the "this" in drawImageActualSize
+  console.log("imgs: ", imgs)
+  console.log("imgs.src: ", imgs.src)
+  image.onload = drawImageActualSize; // Draw when image has loaded            
+  /*********************draw actual image in canvas*******************/
+  function drawImageActualSize() {
+    console.log('this: ', this)
+    imagedata = this;
+    ratio = this.height/this.width;
+        ctx.canvas.width = 4096;
+    ctx.canvas.height = ctx.canvas.width * ratio;
+    ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+  // preview image on right side
+  $.ajax({
+    type: 'GET',
+    url: "{{ url_for('crop.getUserCropImage') }}",
+    data: { crop_image_id: crop_image_id },
+    success: function (response) {
+      var canvas2 = document.getElementById('preCanvas_');
+      var ctx2 = canvas2.getContext("2d");
+      
+      // Get the image data from the response
+      var crop_image = response;
+      console.log(crop_image)
+      // Create a new image element to display the image
+      var image = new Image();
+      image.src = '/static/'+crop_image.visualization_path;
+
+      // Clear the canvas
+      ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+        // Draw the image on the canvas
+        image.onload = function () {
+            ratio = this.height/this.width;
+            ctx2.canvas.width = 512;
+            ctx2.canvas.height = ctx2.canvas.width * ratio;
+            ctx2.drawImage(this, 0, 0, ctx2.canvas.width, ctx2.canvas.height);
+        };
+    },
+    error: function (error) {
+      console.log(error);
+    }
+});
+
+
+      $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            data: {segment_image_id : segment_image_id},
+            url: "{{url_for('label.getLabelImage')}}",
+            success: function(response){
+                var segObj = new Image();
+                segObj.onload = function(){
+                  ratio = this.height/this.width
+                  ctx.canvas.width = 4096;
+                  ctx.canvas.height = ctx.canvas.width * ratio;
+                  ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+                }
+                segObj.src = 'data:image/png;base64,'+response.image_string;
+
+      totalSegments = parseInt(response.total_segments);
+      totalSegs.innerHTML = response.total_segments;
+      labeledSegments = parseInt(response.labeled_segments);
+      labelSegs.innerHTML = labeledSegments;
+      unlabeledSegments = totalSegments - labeledSegments;
+      unlabelSegs.innerHTML = unlabeledSegments;
+      unlabelSegs2 = unlabeledSegments;
+      label_class_list = response.label_class_list;
+      showChart(response.label_class_list);
+      $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        data: {
+          segment_image_id : segment_image_id
+            },
+        url: "{{url_for('label.getLabelArea')}}",
+        success: function(response){
+          console.log(response.segment_area);
+          showPieChart(response.segment_area);
+        }
+      })
+    }
+  })
+   
+}
+
+
+/***************************report the mouse position on click********************/
+canvas.addEventListener("click", segmentImageClick);
+function segmentImageClick(evt){
+  segment_image_id = imageSegId.innerHTML;
+  var ctx = this.getContext("2d");
+  var mousePos = getMousePos(canvas, evt);
+  x = parseInt(mousePos.x);
+  y = parseInt(mousePos.y);
+  console.log(x);
+  console.log(y);
+  $.ajax({
+    type: 'GET',
+    contentType: 'application/json',
+    dataType : 'json',
+    //pass only seg id, x, y
+    data: {
+      segment_image_id : segment_image_id,
+      x: x,
+      y: y,
+      label_id:currentLabel.currentlabelid
+    },
+    url: "{{url_for('label.labelSegment')}}",
+    success: function(response){
+
+      //segment_list = response.segment_list;
+      //dataTransfer = response.segment_list;
+      var segObj = new Image();
+
+      segObj.onload = function(){
+        ratio = this.height/this.width
+        ctx.canvas.width = 4096;
+        ctx.canvas.height = ctx.canvas.width * ratio;
+        ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+      }
+      segObj.src = 'data:image/png;base64,'+ response.image_string;
+      totalSegments = parseInt(response.total_segments);
+      totalSegs.innerHTML = response.total_segments;
+      labeledSegments = parseInt(response.labeled_segments);
+      labelSegs.innerHTML = labeledSegments;
+      unlabeledSegments = totalSegments - labeledSegments;
+      unlabelSegs.innerHTML = unlabeledSegments;
+      unlabelSegs2 = unlabeledSegments;
+      label_class_count = response.label_class_list;
+      showChart(label_class_count);
+      $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        data: {
+          segment_image_id : segment_image_id
+        },
+        url: "{{url_for('label.getLabelArea')}}",
+        success: function(response){
+          console.log(response.segment_area);
+          showPieChart(response.segment_area);
+        }
+      })
+    }
+})
+}
+
+
+  //Get Mouse Position
+  function getMousePos(canvas, evt) {
+    var imageCoords = imagedata.getBoundingClientRect();
+    var canvasCoords = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - canvasCoords.left,
+      y: evt.clientY - canvasCoords.top
+    };
+    }
+
+  function goNext(){ 
+    segment_image_id = imageSegId.innerHTML;
+    
+    $.ajax({
+      type: 'GET',
+      contentType: 'application/json',
+      dataType : 'json',
+      //pass only seg id
+      data: {segment_image_id : segment_image_id,
+             label_id : currentLabel.currentlabelid
+              },
+      url: "{{url_for('label.labelNextSegment')}}",
+      success: function(response){
+
+        var segObj = new Image();
+        segObj.onload = function(){
+          ratio = this.height/this.width
+          ctx.canvas.width = 4096;
+          ctx.canvas.height = ctx.canvas.width * ratio;
+          ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+        segObj.src = 'data:image/png;base64,'+response.image_string;
+        showChart(response.label_class_list);
+        $.ajax({
+          type: 'GET',
+          contentType: 'application/json',
+          data: {
+               segment_image_id : segment_image_id
+              },
+          url: "{{url_for('label.getLabelArea')}}",
+          success: function(response){
+            console.log(response.segment_area);
+            showPieChart(response.segment_area);
+            }
+          })
+      } 
+    })
+}
+
+function matrixIndexed(segArray, segNumber) {
+   var r;
+   for (r = 0; r < segArray.length; ++r) {
+      const currSeg = segArray[r][0];
+         if (currSeg == segNumber) {
+            return r;
+         }
+      }
+  }
+
+  function saveFile(){
+    var training_file_name;
+    var saveModal = document.getElementById('saveModal');
+    var fileElement = document.querySelector('#fileType');
+    file_type = fileElement.value;
+    var saveElement = document.querySelector('#saveType');
+    save_type = saveElement.value;
+  
+    if(save_type == 1){
+      training_file_name = document.getElementById('labelFileName').value;
+      if(training_file_name.length == 0)
+        {
+        message = "Please enter a file name.";
+        showFileNameError(message);
+        return false;
+        }
+
+        var validate = document.getElementById('labelFileName').value;   
+        if (!validate.endsWith('.h5')) {
+          if(file_type=="HDF5"){
+            validate += '.h5';
+            training_file_name = validate
+
+          }
+          
+        } 
+        var reg = /^([a-zA-Z0-9!.@#$%^&*_]*(\.h5|\.json))$/;
+        
+        var validateresult = reg.test(validate);
+        if(validateresult == false)
+        {
+        message = "Please enter name with .h5 or .json file extension.";
+                showFileNameError(message);
+                return false;
+        }
+    }
+    else{
+      if (file_type == 'HDF5'){
+        training_file_name =  $( "#fileListHDF5 option:selected" ).text();
+      }
+
+
+    }
+    segment_image_id = imageSegId.innerHTML;//get it on save button
+
+    /* 
+    Small label stuff
+    */
+    const remove_small_labels = document.getElementById("small-area-merge")?.checked || false
+    const area_removal_percentage = document.getElementById("smallArea").value || 0
+
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        dataType : 'json',
+        data: {
+                segment_image_id : segment_image_id,
+                opacity_value : $('#contrast').val(),
+                file_type: file_type,
+                save_type: save_type,
+                training_file_name: training_file_name,
+                remove_small_labels,
+                area_removal_percentage
+                },
+        url: "{{url_for('train.saveTrainingFile')}}",
+        success: function(response){
+          $('#saveModal').modal('hide');
+        if (response.alert !== undefined && response.alert !== null && response.alert !== None) {
+            alert(response.alert); 
+        }
+        console.log("STATUS")
+        console.log(response.status)
+        if (response.status == 200){
+      
+          showSuccess("Your changes are saved.")
+          
+        }
+        else if(response.status == 400){
+          showError(response.error)
+        }
+        
+      }
+      })
+  }
+
+  function showNextOption(selectObject) {
+    var value = selectObject.value;  
+    var saveModalBody = document.getElementById('saveModalBody');
+    var colDetails = document.getElementById('colDetails');
+    var fileElement = document.querySelector('#fileType');
+    file_type = fileElement.value;
+
+    if(value == '2'){
+
+      if (colDetails.hasChildNodes())
+      {
+          removeAllChildNodes(colDetails);
+      }         
+
+      let divElement1 = document.createElement("div");
+      divElement1.className = "col"
+      colDetails.appendChild(divElement1);
+
+      let pElement = document.createElement("p");
+      pElement.innerHTML = "Select a file";
+      divElement1.appendChild(pElement);
+
+      let divElement2 = document.createElement("div");
+      divElement2.className = "col"
+      colDetails.appendChild(divElement2);
+
+      let selectElement = document.createElement("select");
+      if(file_type=="HDF5"){
+        selectElement.id = "fileListHDF5";
+      }
+
+      selectElement.className = "form-select";
+
+      divElement2.appendChild(selectElement);
+      $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        dataType : 'json',
+        data: {},
+        url: "{{url_for('train.getTrainingFiles')}}",
+        success: function(response){
+
+        $.each(response.training_files, function(i, item) {
+          var file_name = item.file_name.toLowerCase();
+          if (file_name.endsWith('.h5')) {
+            item.label_type = 'labelfileshdf5';
+            $('#fileListHDF5').append($('<option>', {
+              value: item.id,
+              text : item.file_name
+            }));
+          }
+        });
+      }
+    })  
+  }else{
+    if (colDetails.hasChildNodes()){
+        removeAllChildNodes(colDetails);
+    }
+
+    let divElement1 = document.createElement("div");
+    divElement1.className = "col"
+    colDetails.appendChild(divElement1);
+
+    let pElement = document.createElement("p");
+    pElement.innerHTML = "Provide file name";
+    divElement1.appendChild(pElement);
+
+    let divElement2 = document.createElement("div");
+    divElement2.className = "col"
+    colDetails.appendChild(divElement2);
+
+    let inputElement = document.createElement("input");
+    inputElement.id = "labelFileName";
+    inputElement.type = "text";
+    inputElement.className = "form-control";
+
+    divElement2.appendChild(inputElement);
+
+  }
+}
+
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
+
+
+function showPieChart(segment_area)
+{
+  var dps = [];
+  colorMap = {};
+  colorMap[0] = {"name":"Uncategory", "color":"#72bf77"};
+  for(var i=0; i < class_dict.length; i++){
+     colorMap[class_dict[i].id] = {"name":class_dict[i].name, "color":class_dict[i].color};
+  };
+
+  var chart = new CanvasJS.Chart("pieChartContainer",
+	{
+    theme: "light2",
+		title:{
+			text: "Segment Area in % of Pixels",
+      fontSize: 18,
+		},
+		data: [
+		{
+			type: "pie",
+      indexLabelFontSize: 18,
+		  radius: 120,
+      toolTipContent: "#percent %",
+      yValueFormatString: "#,##,###",
+      indexLabel: "{label} #percent%",
+			dataPoints: dps,
+      indexLabelLineColor: "darkgrey",
+      colorSet: "customColorSet"
+		}]
+	});
+
+  chart.render();
+  function parseDataPoints () {
+    $.each(segment_area, function (i, item) {
+
+      dps.push({ y: item, label: colorMap[i]["name"], color: colorMap[i]["color"] });
+    })
+  };
+  parseDataPoints();
+	chart.render();
+}
+
+  function showChart(label_class_count) {
+    var dps = [];
+
+
+    dps.push({y:0, label: 'Uncategory', color:"#72bf77"})
+    for(var i=0; i < class_dict.length; i++){
+      dps.push({y:0, label: class_dict[i].name,color:class_dict[i].color})
+    };
+
+    var chart = new CanvasJS.Chart("chartContainer", {
+      animationEnabled: true,
+      theme: "light2", // "light1", "light2", "dark1", "dark2",
+      title:{
+        text:"Number of segments labeled by class", 
+        fontSize: 20,
+      },
+      axisX: {
+        interval: 1,
+        labelAngle: -70,
+        labelFontSize: 12,
+        titleFontSize: 14,
+      },
+      axisY:{
+        title: "Segments count",
+        labelFontSize: 12,
+        titleFontSize: 14,
+      },
+      data: [{
+        type: "column",
+        dataPoints: dps,
+        colorSet: "customColorSet"
+      }]
+
+    });
+  function parseDataPoints () {
+    console.log(label_class_count)
+    $.each(label_class_count, function (i, label) {
+
+      dps[label[0]].y = label[1];
+    })
+    };
+    parseDataPoints();
+chart.render();
+}
+
+
+</script>
+{% endblock %}

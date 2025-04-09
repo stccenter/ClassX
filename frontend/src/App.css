@@ -1,0 +1,24 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    width: 100%;
+}
+
+a {
+    text-decoration: none;
+
+    &:link,
+    &:visited,
+    &:hover,
+    &:active {
+        color: #000;
+    }
+}
+
+li {
+    list-style: none;
+}

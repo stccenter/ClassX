@@ -1,0 +1,73 @@
+# syntax=docker/dockerfile:1
+# Stable release of BuildKit and allows us to use features like the volume mounting (--mount)
+
+# 1st stage build image:
+# System dependency instillation
+FROM condaforge/mambaforge:24.1.2-0 AS build
+
+# One of the system dependencies requires user input
+# Avoid this by setting the DEBIAN_FRONTEND environment variable to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    libgl1-mesa-dev \
+    gcc \
+    build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libegl1-mesa-dev \
+    libhdf5-dev \
+    pkg-config \
+    libopengl0 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2nd stage build image:
+# Install the locked dependencies
+FROM build AS build-env
+
+# Create a copy of ClassX environment with the locked dependencies
+# Bind the environment.lock file to the container (reduce layers by not using copy)
+# Mount the cache to speed up the process (conda will use the cache to avoid downloading packages)
+# Conda lock used to avoid the need of solving dependencies
+RUN --mount=type=bind,source=./environment/dev_env.lock,target=environment.lock \
+    --mount=type=cache,target=/opt/conda/pkgs \
+    mamba create --copy -p /env --file environment.lock
+
+# Clean up the environment for development (don't remove sqlite3 for production)
+RUN rm -rf /env/lib/python3.10/site-packages/pip /env/lib/python3.10/idlelib /env/lib/python3.10/ensurepip \
+    /env/lib/libasan.so.5.0.0 \
+    /env/lib/libtsan.so.0.0.0 \
+    /env/lib/liblsan.so.0.0.0 \
+    /env/lib/libubsan.so.1.0.0 \
+    /env/bin/x86_64-conda-linux-gnu-ld \
+    /env/bin/sqlite3 \
+    /env/bin/openssl \
+    /env/share/terminfo && \
+  rm -rf /env/lib/python3.10/site-packages/uvloop/loop.c
+
+# For debugging:
+# ENTRYPOINT ["/bin/bash", "-c", "sleep infinity"]
+
+# 3rd stage runtime image:
+# Distroless (no shell, no package manager) image for production
+FROM gcr.io/distroless/base-debian12 AS runtime-dev
+
+# Copy the environment from the build stage
+COPY --from=build-env /env /env
+COPY --from=build-env /usr/lib /usr/lib
+
+# Copy the app code
+COPY ./ /app
+WORKDIR /app
+
+# Set necessary environment variables
+ENV PATH="/env/bin:$PATH"
+
+# For debugging:
+# ENTRYPOINT ["/bin/bash", "-c", "sleep infinity"]
+
+# For running the app:
+# CMD ["python", "-u", "app.py"]

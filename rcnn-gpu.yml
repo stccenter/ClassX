@@ -1,0 +1,30 @@
+services:
+  mask-rcnn:
+    container_name: mask-rcnn
+    build:
+      context: ./
+      dockerfile: docker/dev/mask-rcnn/Dockerfile-gpu
+    runtime: nvidia
+    command: python test-gpu.py
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all # Use all GPUs
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility # Capabilities needed for CUDA
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']
+              capabilities: [gpu]
+    networks:
+      - backend
+    ports:
+      - "5002:5002" # Map container port 5000 to host port 50002
+    # Uncomment and modify if volumes needed:
+    # volumes:
+    #   - ./path/to/volume:/path/inside/container
+
+networks:
+  backend:
+    name: backend
+    driver: bridge

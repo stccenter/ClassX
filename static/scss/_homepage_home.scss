@@ -1,0 +1,194 @@
+$btnBg: #e6cc00;
+$hoverBtnBg: #e6bc40;
+
+
+.homepage_home {
+    background: linear-gradient(to bottom right, #000, #666, #fff);
+
+    .header {
+        height: 60vh;
+        display: flex;
+        justify-content: left;
+        padding-top: 20vh;
+        padding-left: 30vh;
+        align-items: left;
+        color: white;
+        text-align: left;
+        position: relative;
+
+        &-content {
+            z-index: 1;
+
+            h2 {
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+                text-shadow: 2px 2px 5px black;
+            }
+
+            button {
+                padding: 10px 20px;
+                background-color: $btnBg;
+                border: none;
+                color: black;
+                font-size: 1rem;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: $hoverBtnBg;
+                }
+            }
+
+        }
+
+
+        &-carousel {
+
+            &__items {
+                .active {
+                    opacity: 1;
+                }
+            }
+
+            &__item {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                opacity: 0;
+                @include transition-ease;
+            }
+
+            &__btn {
+                position: absolute;
+                background-color: rgba(0, 0, 0, 0.4);
+                cursor: pointer;
+                width: 26px;
+                height: 69px;
+                font-size: 30px;
+                color: white;
+                line-height: 69px;
+                padding: 0 5px;
+                z-index: 10;
+                opacity: 0;
+                top: 50%;
+
+                &-left {
+                    left: 0;
+                }
+
+                &-right {
+                    right: 0;
+                }
+
+                &:hover {
+                    opacity: 1;
+                }
+            }
+
+            &__pages {
+                height: 20px;
+                display: flex;
+                position: absolute;
+                bottom: 35px;
+                right: 25px;
+
+                .active {
+                    background: rgba(130, 130, 130, 0.9);
+                }
+            }
+
+            &__page {
+                width: 20px;
+                height: 20px;
+                border-radius: 20px;
+                background: rgba(130, 130, 130, 0.4);
+                cursor: pointer;
+                margin: 8px;
+
+                &:hover {
+                    background: rgba(130, 130, 130, 0.7);
+                }
+
+
+            }
+        }
+    }
+
+    .main {
+        .aboutHome {
+            padding: 40px 20px;
+            background-color: white;
+
+            .aboutHomeContainer {
+                max-width: 1200px;
+                margin: 0 auto;
+                text-align: left;
+                flex-wrap: wrap;
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+
+                .aboutColumn {
+                    flex: 1;
+                    padding: 20px;
+                    flex-wrap: wrap;
+
+                    h2,
+                    p {
+                        margin: 0 10px;
+                    }
+
+                    h2 {
+                        margin-bottom: 20px;
+                        font-size: 2em;
+                        align-self: flex-end;
+
+                        p {
+                            font-size: 1.2em;
+                            line-height: 1.6;
+                            margin-bottom: 20px;
+                            align-self: center;
+                        }
+                    }
+                }
+
+                .aboutBtn {
+                    margin-top: 20px;
+                    align-self: flex-start;
+                    padding: 10px 20px;
+                    background-color: $btnBg;
+                    border: none;
+                    color: black;
+                    font-size: 1em;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: $hoverBtnBg;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@for $i from 1 through 4 {
+    .header-carousel__item:nth-child(#{$i}) {
+        @if $i ==1 {
+            // background: linear-gradient(to bottom right, #000, #666, #fff);
+            background: url('/static/images/homepage_images/DMS_1604309_10159_20160422_00284468.png') no-repeat center center/cover;
+        }
+
+        @if $i ==2 {
+            background: url('/static/images/homepage_images/aia_20120602_195955_0193_image_lev1.png') no-repeat center center/cover;
+        }
+
+        // @if $i ==3 {
+        //     background: url('/static/images/homepage_images/aia_20120602_195955_0193_image_lev1.png') no-repeat center center/cover;
+        // }
+
+        // @if $i ==4 {
+        //     background: url('/static/images/homepage_images/aia_20120602_195955_0193_image_lev1.png') no-repeat center center/cover;
+        // }
+    }
+}

@@ -1,0 +1,561 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row" style="margin-top:3px;">
+  <div id="alert-placeholder"></div>
+</div>
+<div class="col-sm-auto bg-light sticky-top">  
+  <div id="loader">
+  </div>
+  <div class="row">
+    <div class="col">
+        <h2 class="image-title">
+          {{original_image.name}}
+        </h2>
+        <div class="container-crop">
+          <div class="image-group">
+            <div class="col-sm-6">
+              <div class="origCard image-card" style="width: 610px; height: 415px;">
+                <div class="card-body" >
+                  <div id="imgViewer_{{ original_image.id }}" >
+                    <canvas id="orgCanvas_{{ original_image.id }}"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-3">
+              <div class="cropCard image-card" style="margin-left:100px ; ">
+                <div class="card-body">
+                  <div class="canvas-wrapper" id="imgPreview_{{ original_image.id }}" style="width: 256px; height: 256px; ">
+                    <canvas id="preCanvas_{{ original_image.id }}"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="controls">    
+    <div id="content">
+      <form class="form-horizontal cropSubmit" id="cropForm_{{ original_image.id }}" 
+      method="post">  
+        <div class="form-group row">
+          <div class="col-sm-3">
+            <div style="display: flex; justify-content: space-between;">
+              <label class="form-label" for="yNav_{{ original_image.id }}"
+              style="display: block;">Y</label>
+              <p id="yNavVal_{{ original_image.id }}"></p> 
+            </div>
+            <input type="range" 
+              class="form-range"
+              id="yNav_{{ original_image.id }}"
+              name = "yNavName_{{ original_image.id }}"
+              oninput="yNavChange(this, '{{ original_image.id }}')"
+              onchange = "setYImagePreview(this, '{{ original_image.id }}')"
+              style="display: block;"
+                disabled>
+          </div>
+          <div class="col-sm-3">
+            <div style="display: flex; justify-content: space-between;">
+              <label class="form-label" for="xNav_{{ original_image.id }}" style="display: block">X</label>  
+              <p id="xNavVal_{{ original_image.id }}"></p>         
+            </div>          
+            <input type="range" 
+              class="form-range" 
+              id="xNav_{{ original_image.id }}"
+              name = "xNavName_{{ original_image.id }}"
+              oninput="xNavChange(this, '{{ original_image.id }}')"
+              onchange = "setXImagePreview(this, '{{ original_image.id }}')"
+              style="display:block;"
+              disabled>                
+          </div>
+          <div class="col-sm-3">
+            <div style="display: flex; justify-content: space-between;">
+              <label class="form-label" for="rangeZoom_{{ original_image.id }}" style="display:block;">Zoom +/-</label>
+              <p id="rangeZoomVal_{{ original_image.id }}"></p>      
+            </div> 
+            <input
+              type="range"
+              class="form-range"
+              id="rangeZoom_{{ original_image.id }}"
+              name="rangeZoomName_{{ original_image.id }}"
+              min="0"
+              max="{{max_crop_size}}"
+              step = "256"
+              oninput = "rangeZoomChange(this, '{{ original_image.id }}')"
+              onchange = "setZoomPreview(this, '{{ original_image.id }}')"
+              style="display:block;"
+              disabled>                   
+          </div>    
+        </div>                      
+        <div class="form-group row">
+          <div class="col-sm-3">
+            <button id="cropImage_{{ original_image.id }}" 
+              class="button" 
+              style="background-color: #324755;"
+              type="submit"
+              >Crop Image
+            </button>
+          </div>
+          <div class="col-sm-3">
+            <button
+              id="defaultZoom_{{ original_image.id }}" 
+              class="button"  
+              style="display: inline;background-color: #324755;"
+              type="button"
+              onclick="setDefaultZoom('{{ original_image.id }}')">
+              Default (256)
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+<!-- </div> -->
+
+<script
+    type="text/javascript"
+    src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+<script>
+$("#cropImage_{{ original_image.id }}").click(function () {//correction
+  showSuccess('Please wait while we process your action.');
+ });
+
+var id = '{{ original_image.id }}';
+var globallenVal = 0;//correction
+var image = null;
+var imagedata = null;
+var showloader = false;
+
+
+function showSuccess(message) {
+  $('#alert-placeholder').html('<div class="alert alert-success alert-dismissible fade show" style="margin:35px;"><strong>Success! </strong>'+ message +'  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+}
+
+function showError(message) {
+$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible fade show" style="margin:35px;"><strong>Error! </strong>'+ message+ '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+}
+function showErrorInvalid(message, invalidfiles ) {
+$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible fade show" style="margin:35px;"><strong>Error! </strong>'+ message+ '<br>' + invalidfiles +'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+}
+
+
+$(document).ready(function(){
+
+//   $(document).ajaxStart(function()
+// {
+//     if (showloader)
+//     {
+//       $("#loader").css("display", "block");
+
+//     }
+// });    
+
+// $(document).ajaxComplete(function() 
+// {
+  
+//   $('#loader').fadeOut("slow");
+//     showloader=false;
+// });
+
+
+/*******************x slider************************/
+var xNav = document.getElementById("xNav_"+id);
+    xNav.value = 0;
+    var xNavVal = document.getElementById("xNavVal_"+id);
+    xNavVal.innerHTML = xNav.value;
+    /*******************y slider************************/
+    var yNav = document.getElementById("yNav_"+id);
+    yNav.value = 0;
+    var ynavVal = document.getElementById("yNavVal_"+id);
+    ynavVal.innerHTML = yNav.value;
+    /**************************************************/
+    var rangeZoom = document.getElementById("rangeZoom_"+id);
+    // rangeZoom.value = 256; set default value for range zoom
+    rangeZoom.value = 256;
+    var rangeZoomVal = document.getElementById("rangeZoomVal_"+id);//
+    rangeZoomVal.innerHTML = rangeZoom.value;
+    showloader=true;
+   $.ajax({
+          url: "{{url_for('original.getOriginalImageById')}}",
+          data: {   original_image_id: id},
+                    beforeSend: function() {
+                      $("#loader").css("display", "block");
+                    },
+                    complete: function() {
+                      $('#loader').css("display", "none");
+                    },
+          success: function(response){
+            // if (response.status == 200) 
+            // {
+              imageObj = response;
+              data_path = imageObj.visualization_path;
+
+           	/**************************************Main Image**************************/
+            /**************************************************************************/
+
+            var canvas = document.getElementById('orgCanvas_'+id);
+            var ctx = canvas.getContext("2d");
+
+            var image = new Image(); // Using optional size for image
+            image.src = '/static/'+data_path;
+            image.onload = drawImageActualSize; // Draw when image has loaded 
+            
+            /*********************draw actual image in canvas*******************/
+            function drawImageActualSize() {
+              zoomVal = document.getElementById("rangeZoom_"+id).value;
+              imagedata = this;
+              // Use the intrinsic size of image in CSS pixels for the canvas element
+              canvas_rescaleWidth = (this.naturalWidth*0.1).toFixed(2);
+              canvas_rescaleHeight = (this.naturalHeight*0.1).toFixed(2);
+              canvas_loader_width = (this.naturalWidth*0.1).toFixed(2);
+              canvas_loader_height = (this.naturalHeight*0.1).toFixed(2);
+
+              // canvas.width = this.naturalWidth*0.1;
+              // canvas.height = this.naturalHeight*0.1;
+              canvas.width = canvas_rescaleWidth;
+              canvas.height = canvas_rescaleHeight;
+			  // Disable the display of loader
+			  
+              ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas_rescaleWidth, canvas_rescaleHeight);
+
+              ctx.beginPath();
+              ctx.lineWidth = "1";
+              //range zoom in/out value
+              lenVal = (zoomVal*0.1).toFixed(1)
+              strokeColor = getRectColor(lenVal);
+              ctx.strokeStyle = strokeColor;
+              ctx.rect(0, 0, lenVal, lenVal);
+              ctx.stroke();
+              xNav.disabled = false;
+              yNav.disabled = false;
+              rangeZoom.disabled = false;
+              xNav.setAttribute ("max", this.naturalWidth);
+              yNav.setAttribute ("max", this.naturalHeight);
+            }
+            /**************************************End Main Image**************************/
+
+            /***************************report the mouse position on click********************/
+            canvas.addEventListener("click", function (evt) {
+              var ctx = canvas.getContext("2d");
+              var ctx1 = canvas1.getContext('2d');
+              var mousePos = getMousePos(canvas, evt);
+              var displayVal = getMousePos(canvas, evt);
+
+              ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+              ctx.drawImage(imagedata, 0, 0, imagedata.width, imagedata.height, 0, 0, imagedata.width*0.1, imagedata.height*0.1);
+             // ctx.drawImage(this, 0, 0, this.width, this.height);
+              ctx.beginPath();
+              ctx.lineWidth = "1";
+
+              //get zoom value from zoom slider
+              zoomVal = document.getElementById("rangeZoom_"+id).value;
+              lenVal = (zoomVal*0.1).toFixed(1);
+
+              //prevent box from going off the image
+                zoomClickVal = (document.getElementById("rangeZoom_"+id).value*0.1).toFixed(1);
+                if (mousePos.x > ((imagedata.width*0.1) - zoomClickVal))
+                {
+                  mousePos.x = (imagedata.width*0.1) - zoomClickVal;
+                  displayVal.x = imagedata.width*0.1 - zoomClickVal;
+       
+                }
+                if (mousePos.y > ((imagedata.height*0.1) - zoomClickVal)) 
+                {
+                  mousePos.y = (imagedata.height*0.1) - zoomClickVal;
+                  displayVal.y = imagedata.height*0.1 - zoomClickVal;
+                }//correction code
+
+              //update x and y slider based on cursor position 
+              xNav.value = mousePos.x*10;
+              yNav.value = mousePos.y*10;
+              xNavVal.innerHTML = parseInt(displayVal.x*10);
+              ynavVal.innerHTML = parseInt(displayVal.y*10);
+              
+              strokeColor = getRectColor(lenVal);
+              ctx.strokeStyle = strokeColor;  
+              ctx.rect(mousePos.x, mousePos.y, lenVal, lenVal);
+              ctx.stroke();
+
+              ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+              
+              //zoomVal = parseInt(zoomVal)
+              canvas1.width = zoomVal;
+              canvas1.height = zoomVal;
+              ctx1.drawImage(imagedata, mousePos.x*10, mousePos.y*10, zoomVal, zoomVal, 0, 0, canvas1.width, canvas1.height);
+            }, false);
+
+            //Get Mouse Position
+            function getMousePos(canvas, evt) {
+              
+              var imageCoords = imagedata.getBoundingClientRect();
+              var canvasCoords = canvas.getBoundingClientRect();
+              return {
+                x: evt.clientX - parseInt(canvasCoords.left),
+                y: evt.clientY - parseInt(canvasCoords.top)
+              };
+            }
+
+            /**************************************Image preview**************************/
+            zoomVal = document.getElementById("rangeZoom_"+id).value;
+            var canvas1 = document.getElementById('preCanvas_'+id);
+            // canvas1.setAttribute('style', 'width:' + (100) +
+            // '%; height: ' + (100) + '%;');
+            var ctx1 = canvas1.getContext("2d");
+            const image1 = new Image(); // Using optional size for image
+            image1.onload = drawImageZoomSize; // Draw when image has loaded   
+            image1.src = '/static/'+data_path;
+
+            function drawImageZoomSize() {
+              clipX = xNav.value;
+              clipY = yNav.value;
+              zoomVal = rangeZoom.value;
+              canvas1.width = zoomVal;
+              canvas1.height = zoomVal;
+              //range zoom in out value
+              //ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+              ctx1.drawImage(this, clipX, clipY, zoomVal, zoomVal, 0, 0, canvas1.width, canvas1.height);
+            }  
+            /*************************************end image preview******************************/
+            //}
+          }
+        })
+})
+
+function getRectColor(rangeVal){
+  if (rangeVal < 25.6) {
+  strokeColor = '#FF0000';
+}
+else if (rangeVal > 25.6){
+  strokeColor = '#00FF00';
+}
+else {
+  strokeColor = '#00FFFF';
+}
+return strokeColor;
+}
+
+
+function rangeZoomChange(slideObj, id){
+  var rangeZoomVal = document.getElementById("rangeZoomVal_"+id);
+  rangeZoomVal.innerHTML = slideObj.value;
+  var zoomVal = (slideObj.value*0.1).toFixed(1);
+  var x = (document.getElementById("xNav_"+id).value*0.1).toFixed(2);
+  var y = (document.getElementById("yNav_"+id).value*0.1).toFixed(2);
+  var canvas = document.getElementById('orgCanvas_'+id);
+  var ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.drawImage(imagedata, 0, 0, imagedata.width, imagedata.height, 0, 0, imagedata.width*0.1, imagedata.height*0.1);
+  ctx.beginPath();
+  ctx.lineWidth = "1";
+  strokeColor = getRectColor(zoomVal); 
+  ctx.strokeStyle = strokeColor;
+  ctx.rect(x, y, zoomVal, zoomVal);
+  ctx.stroke();
+}
+
+function setZoomPreview(slideObj, id){
+  var zoomVal = slideObj.value;
+  var x = document.getElementById("xNav_"+id).value;
+  var y = document.getElementById("yNav_"+id).value;
+  var canvas1 = document.getElementById('preCanvas_'+id);
+  var ctx1 = canvas1.getContext("2d");
+  canvas1.width = zoomVal;
+  canvas1.height = zoomVal;
+  ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+  ctx1.drawImage(imagedata, x, y, zoomVal, zoomVal, 0, 0, canvas1.width, canvas1.height);
+}
+
+/* x slider change */ 
+function xNavChange(slideObj, id){
+  var xnavVal = document.getElementById("xNavVal_"+id);
+  var x = (slideObj.value*0.1).toFixed(2);
+  var ynavVal = document.getElementById("yNav_"+id);
+  var y = (ynavVal.value*0.1).toFixed(2);
+  zoomVal = (document.getElementById("rangeZoom_"+id).value*0.1).toFixed(1);
+    /* Prevent the lens from being positioned outside the image: */
+  if (x > ((imagedata.width*0.1) - zoomVal))
+  {
+    x = (imagedata.width*0.1) - zoomVal;
+    xnavVal.innerHTML = imagedata.width - (zoomVal*10);
+  }
+  else{
+    xnavVal.innerHTML = slideObj.value;
+  }
+  if (y > ((imagedata.height*0.1) - zoomVal)) 
+   {
+      y = (imagedata.height*0.1) - zoomVal;
+  }
+  
+  var canvas = document.getElementById('orgCanvas_'+id);
+  var ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.drawImage(imagedata, 0, 0, imagedata.width, imagedata.height, 0, 0, imagedata.width*0.1, imagedata.height*0.1);
+  ctx.beginPath();
+  ctx.lineWidth = "1";
+  strokeColor = getRectColor(zoomVal);
+  ctx.strokeStyle = strokeColor;
+  ctx.rect(x, y, zoomVal, zoomVal);
+  ctx.stroke();
+}
+
+/* y slider change */
+function yNavChange(slideObj, id){
+  var ynavVal = document.getElementById("yNavVal_"+id);
+  var y = (slideObj.value*0.1).toFixed(2);
+  var xnavVal = document.getElementById("xNav_"+id);
+  var x = (xnavVal.value*0.1).toFixed(2);
+  zoomVal = (document.getElementById("rangeZoom_"+id).value*0.1).toFixed(1);
+
+   if (y > ((imagedata.height*0.1) - zoomVal)) 
+   {
+      y = (imagedata.height*0.1) - zoomVal;
+      ynavVal.innerHTML = imagedata.height - (zoomVal * 10);
+  }
+  else{
+    ynavVal.innerHTML = slideObj.value;
+  }
+  if (x > ((imagedata.width*0.1) - zoomVal))
+  {
+    x = (imagedata.width*0.1) - zoomVal;
+    
+  }
+  // if (y < 0) 
+  // {y = 0;}
+  var canvas = document.getElementById('orgCanvas_'+id);
+  var ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  ctx.drawImage(imagedata, 0, 0, imagedata.width, imagedata.height, 0, 0, imagedata.width*0.1, imagedata.height*0.1);
+  ctx.beginPath();
+  ctx.lineWidth = "1";
+  strokeColor = getRectColor(zoomVal);
+  ctx.strokeStyle = strokeColor;
+  ctx.rect(x, y, zoomVal, zoomVal);
+  ctx.stroke();
+}
+
+function setYImagePreview(slideObj, id){
+  var y = slideObj.value;
+  var rangeZoom = document.getElementById("rangeZoom_"+id);
+  var zoomVal = rangeZoom.value;
+  if (y > ((imagedata.height) - zoomVal))
+  {
+    y = (imagedata.height) - zoomVal;
+    slideObj.max = (imagedata.height) - zoomVal;
+  }
+  var xnavVal = document.getElementById("xNav_"+id);
+  var x = xnavVal.value;
+  if (x > ((imagedata.width) - zoomVal))
+  {
+    x = (imagedata.width) - zoomVal;
+    
+  }
+  var preCanvas = document.getElementById('preCanvas_'+id);
+  var ctx1 = preCanvas.getContext("2d");
+  preCanvas.width = zoomVal;
+  preCanvas.height = zoomVal;
+  ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+  ctx1.drawImage(imagedata, x, y, zoomVal, zoomVal, 0, 0, preCanvas.width, preCanvas.height);
+}
+
+function setXImagePreview(slideObj, id){
+  var x = slideObj.value;
+  var rangeZoom = document.getElementById("rangeZoom_"+id);
+  var zoomVal = rangeZoom.value;
+  if (x > ((imagedata.width) - zoomVal))
+  {
+    x = (imagedata.width) - zoomVal;
+    slideObj.max = (imagedata.width) - zoomVal;
+  }
+  var ynavVal = document.getElementById("yNav_"+id);
+  var y = ynavVal.value;
+  if (y > ((imagedata.height) - zoomVal))
+  {
+    y = (imagedata.height) - zoomVal;
+    
+  }
+  var preCanvas = document.getElementById('preCanvas_'+id);
+  var ctx1 = preCanvas.getContext("2d");
+  preCanvas.width = zoomVal;
+  preCanvas.height = zoomVal;
+  ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+  ctx1.drawImage(imagedata, x, y, zoomVal, zoomVal, 0, 0, preCanvas.width, preCanvas.height);
+}
+
+function setDefaultZoom(id){
+  var ynavVal = document.getElementById("yNav_"+id);
+  var y = (ynavVal.value*0.1).toFixed(2);
+  var xnavVal = document.getElementById("xNav_"+id);
+  var x = (xnavVal.value*0.1).toFixed(2);
+  var rangeZoom = document.getElementById("rangeZoom_"+id);
+  rangeZoom.value = 256;
+  var zoomVal = (rangeZoom.value*0.1).toFixed(1);
+  rangeZoom.value = 256;
+  var rangeZoomVal = document.getElementById("rangeZoomVal_"+id);//
+  rangeZoomVal.innerHTML = rangeZoom.value;
+  var canvas = document.getElementById('orgCanvas_'+id);
+  var ctx = canvas.getContext("2d");
+  var preCanvas = document.getElementById('preCanvas_'+id);
+  var ctx1 = preCanvas.getContext("2d");
+  ctx.beginPath();
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.drawImage(imagedata, 0, 0, imagedata.width, imagedata.height, 0, 0, imagedata.width*0.1, imagedata.height*0.1);
+  ctx.lineWidth = "1";
+  //the preview
+  ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+  var drawImageX = xnavVal.value;
+  var drawImageY = ynavVal.value;
+  var drawImageZoom = 256;
+  strokeColor = getRectColor(zoomVal);
+  ctx.strokeStyle = strokeColor;
+  ctx.rect(x, y, zoomVal, zoomVal);
+  ctx.stroke();
+  preCanvas.width = 256;
+  preCanvas.height = 256;
+  ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+  ctx1.drawImage(imagedata, drawImageX, drawImageY, drawImageZoom, drawImageZoom, 0, 0, preCanvas.width, preCanvas.height);
+}
+
+
+$(".cropSubmit").submit(function(e){
+    e.preventDefault();
+  var form = $(this);
+  var formid = $(this).attr('id');
+  var id = formid.split('_')[1]
+  var zoom = 256;
+  //input file
+  var form_data = form.serializeArray();
+  form_data.push(
+                  {name: 'id',
+                  value: id} ,
+                  {name: 'zoom',
+                  value: zoom});
+  $.ajax({
+          type: 'POST',
+          contentType: 'application/json',
+          dataType : 'json',
+          data: JSON.stringify(form_data),
+          url: "{{url_for('crop.saveCropImage')}}",
+          success: function(response){
+            
+            if (response.status == 200) 
+            { showSuccess('Image has been cropped');
+              
+            }
+            if (response.status == 400) 
+            { showError('Selected area is overbound the limits of the image');
+            }
+            
+          }
+        });
+});
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+name: maskrcnn-cpu
+channels:
+  - defaults
+  - conda-forge
+  - pytorch-nightly
+  - pytorch
+  - anaconda
+dependencies:
+  - python=3.10
+  - numpy
+  - matplotlib
+  - pillow
+  - scikit-learn
+  - scikit-image
+  - pycocotools
+  - flask=3.*
+  - pytorch
+  - torchvision
+  - torchaudio
+  - h5py
+  - pip
+  - pip:
+      - opencv-python
+

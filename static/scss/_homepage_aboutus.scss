@@ -1,0 +1,180 @@
+.homepage-about {
+    font-family: "Nunito", sans-serif;
+
+    &__show {
+        height: 50vh;
+        width: 100%;
+        background: url('/static/images/homepage_images/about_show.png') no-repeat center center/cover;
+
+        &-herotitle {
+            height: 100%;
+            padding: 17vh 0vw;
+            font-size: 2rem;
+            color: #f0f0f0;
+        }
+    }
+
+    &__product {
+
+
+
+        h2 {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .product_intro {
+            display: flex;
+            justify-content: space-evenly;
+            padding: 4rem 2rem 8rem;
+
+            .step {
+                display: flex;
+                flex-direction: column;
+                justify-content: end;
+                width: 20%;
+
+                .detail {
+                    text-align: left;
+                }
+            }
+        }
+    }
+
+    &__team {
+        background-color: $secondarry-color;
+
+        h2 {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        &-cards {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        &-card {
+            margin: 5rem;
+            height: 20rem;
+            width: 24rem;
+            border-radius: 1rem;
+
+            &-image {
+                img {
+                    width: 10rem;
+                    aspect-ratio: 1/1;
+                    border-radius: 100%;
+                    cursor: pointer;
+                }
+            }
+
+            .detail {
+                &__personal-info {
+                    margin: 1rem 0;
+
+
+                }
+
+                .btn {
+                    color: #818181;
+                    cursor: pointer;
+
+                    &:hover {
+                        color: #4f4f4f;
+
+                        path {
+                            fill: #4f4f4f;
+                        }
+                    }
+
+                    path {
+                        fill: #818181
+                    }
+                }
+
+                .name {
+                    font-weight: 800;
+                    cursor: pointer;
+                }
+
+                .email {
+                    color: rgb(28, 145, 255);
+                    cursor: pointer;
+
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+
+                .social-media {
+                    i {
+                        border-radius: 100%;
+                        background-color: rgb(242 242 242);
+                        color: rgb(178 178 178);
+                        margin: 0.2rem;
+                    }
+                }
+
+
+
+                .info {
+                    position: fixed;
+                    display: none;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background-color: rgba(148, 148, 148, 0.589);
+
+
+
+                    &-card {
+                        background-color: #fff;
+                        border-radius: 1rem;
+                        display: flex;
+                        width: 50vw;
+                        height: 50vh;
+                        margin: 25vh auto;
+                        overflow: hidden;
+                        position: relative;
+
+                        .close {
+                            position: absolute;
+                            width: 1rem;
+                            top: 1rem;
+                            right: 1rem;
+                            cursor: pointer;
+                        }
+
+                        .image {
+                            width: 50%;
+                            overflow: hidden;
+
+                            img {
+                                height: 100%;
+
+                            }
+                        }
+
+                        .description {
+                            width: 50%;
+                            padding: 1.5rem;
+
+                            .readme {
+                                margin-top: 2rem;
+                            }
+                        }
+                    }
+                }
+
+                .active {
+                    display: block;
+                }
+
+            }
+        }
+
+
+    }
+}

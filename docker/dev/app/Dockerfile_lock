@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1
+# Stable release of BuildKit and allows us to use features like the volume mounting (--mount)
+
+# Build stage image:
+FROM condaforge/mambaforge:24.1.2-0 AS build
+
+# Create a copy of ClassX environment with the locked dependencies
+# Mount the cache to speed up the process (conda will use the cache to avoid downloading packages)
+# Conda lock used to avoid the need of solving dependencies
+RUN --mount=type=bind,source=./environment/environment.lock,target=environment.lock \
+    --mount=type=cache,target=/opt/conda/pkgs \
+    mamba create --copy -p /env --file environment.lock
+
+# Runtime stage image:
+FROM debian:bullseye-slim AS runtime-dev
+# Distroless for execution
+# FROM gcr.io/distroless/base-debian12 AS runtime
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libegl1-mesa-dev \
+    libopengl0 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the environment from the build stage
+COPY --from=build /env /env
+
+# Copy the app code
+COPY ./ /app
+WORKDIR /app
+
+# Set necessary environment variables
+ENV PATH="/env/bin:$PATH"
+
+# Make port 5000 available to the world outside this container
+# EXPOSE 5001
+
+# For debugging:
+# ENTRYPOINT ["/bin/bash", "-c", "sleep infinity"]
+
+# For running the app:
+# CMD ["python", "-u", "app.py"]
