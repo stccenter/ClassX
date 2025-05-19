@@ -9,7 +9,7 @@ This guide provides detailed instructions for setting up and running the ClassX 
 
 ```bash
 sudo apt update
-sudo apt install -y git docker.io docker-compose-plugin
+sudo apt install -y git docker.io docker-compose-plugin make
 sudo systemctl enable docker
 sudo systemctl start docker
 ```
