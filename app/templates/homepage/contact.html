@@ -1,0 +1,49 @@
+{% extends 'homepage/base.html' %}
+{% block content %}
+
+<header class="headerContact">
+    <div class="headerContactContent">
+        <h2>Contact Us</h2>
+    </div>
+</header>
+
+<main>
+    <div class="contactMain">
+        <div class="contactColumn">
+            <h2> Contact Info </h2>
+            <br>
+                <p>If you have any questions, feel free to reach out through the following contact information:</p>
+                <br>
+                <p>Email: {{ WEBSITE_EMAIL }}</p>
+                 <br>
+            <h3> Send us a message: </h3>
+            <br>
+                <p>You can use the form to send us a message regarding issues with the site, our tool, or just general questions.</p>
+        </div>
+        <div class="contactColumn">
+            <form action="#" method="post">
+                        <label for="contactName">Full Name:</label>
+                        <input type="contactName" id="contactName" name="contactName" required>
+
+                        <label for="contactEmail">Email:</label>
+                        <input type="contactEmail" id="contactEmail" name="contactEmail" required>
+                        
+                        <label for="message">Message:</label>
+                        <textarea id="message" name="message" required></textarea>
+                        
+                        <button type="submit">Send</button>
+                    </form>
+         </div>
+</main>
+<script>
+    $(document).ready(function(){
+        Array.from(menuNav.children).forEach(item =>
+            item.classList.remove("active")
+        );
+        console.log(menuNav.children[3]);
+        menuNav.children[3].classList.add("active");
+         
+    })
+</script>
+
+{% endblock %}

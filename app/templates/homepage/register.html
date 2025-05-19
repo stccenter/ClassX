@@ -1,0 +1,52 @@
+{% extends 'homepage/base.html' %}
+{% block content %}
+<section class = "accntReg">
+    <div class="registerContainer">
+        <h2>Account Registeration</h2>
+        <p> Thank you for choosing to work with ClassX.</p>
+        <br>
+        <form action="/submit_registration" method="POST">
+            <div class="form-group">
+                <div class="column">
+            <label for="fname">First Name *</label>
+            <input type="text" id="fname" name="fname" required>
+
+            <div class="column">
+            <label for="lname">Last Name *</label>
+            <input type="text" id="lname" name="lname" required>
+
+            <div class="form-group">
+                <div class="column">
+            <label for="user">Username *</label>
+            <input type="text" id="user" name="user" required>
+
+            <div class="form-group">
+                <div class="column">
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password" required>
+
+            <div class="column">
+            <label for="confirm-password">Confirm Password *</label>
+            <input type="password" id="confirm-password" name="confirm_password" required>
+
+            <div class="form-group">
+                <div class="column">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+
+            <div class="form-group">
+                <div class="column">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title">
+
+            <div class="column">
+            <label for="email">Organization</label>
+            <input type="text" id="org" name="org">
+
+            <button class="createAccnt" type="submit">Create My Account</button>
+            <p>Already have an account? <a href="#signin">Sign In</a></p>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

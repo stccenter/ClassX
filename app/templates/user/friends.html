@@ -1,0 +1,237 @@
+{% extends 'user/user-base.html' %}
+{% block content %}
+<div class="friends-all">
+    <h1>Friends</h1>
+    <p class="friend-desc"> View your list of friends. </p>
+    <div class="friends-container">
+        <div class="friends-list">
+            <h2>Your Friends</h2>
+            <select id="filter-friends">
+                <option value="all">All Friends</option>
+                <!--
+                <option value="organization">Friends in Organization</option>
+                -->
+            </select>
+            <button class="add-friend">Add New Friend</button>
+            <ul class="friend-list" id="friend-list"></ul>
+        </div>
+
+        <div class="modal-all">
+            <div class="modal" id="friendsModal">
+                <div class="modal-content">
+                    <span class="close-button">&times;</span>
+                    <h2>Add Friend</h2>
+                    <input type="text" id="searchFriendInput" placeholder="Search for friends by Username...">
+                </div>
+            </div>
+        </div>
+
+        <div class="friend-profile" id="friend-profile">
+            <h2>Friend's Profile</h2>
+            <div id="profile-details">
+                <p>Click on a friend's profile to see more of their information!</p>
+                <!--
+                <img src="\static\images\profile-image-placeholder.png" alt="Profile Image" class="profile-image">
+                <p id="friend-fullname">Full Name: Alice Smith</p>
+                <p id="friend-username">Username: @alice</p>
+                <button class="remove-friend">Remove Friend</button>
+                <button class="share-dataset">Share Datasets</button>
+                <button class="view-dataset">View Current Datasets</button>
+                -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const friendsList = document.querySelector('.friend-list');
+        const friendProfile = document.getElementById('profile-details');
+        const addFriendButton = document.querySelector('.add-friend');
+        const filterFriends = document.getElementById('filter-friends');
+        const modal = document.getElementById('friendsModal');
+        const closeButton = document.querySelector('.close-button');
+        const searchFriendInput = document.getElementById('searchFriendInput');
+    
+        // Fetch friends and pending requests from backend
+        async function fetchFriends() {
+            try {
+                const response = await fetch('/friends');
+                if (response.ok) {
+                    const data = await response.json();
+                    renderFriends(data);
+                } else {
+                    console.error('Error fetching friends');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    
+        function renderFriends(data) {
+            console.log(data);
+            friendsList.innerHTML = '';
+    
+            data.forEach((friend) => {
+                const li = document.createElement('li');
+                li.setAttribute('data-uuid', friend.uuid); 
+                li.setAttribute('data-fullname', friend.username); 
+    
+                if (friend.pending) {
+                    li.innerHTML = `
+                        <img src="/static/images/png-user-icon.png" alt=" Profile Image" class="mini-profile-image">
+                        <span class="friend-name">${friend.username}</span>
+                        <span class="friend-username">@${friend.username}</span>
+                        ${friend.sent ? `
+                            <button class="friend-button cancel-request">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        ` : `
+                            <button class="friend-button accept-request">
+                                <i class="fa fa-check-circle"></i>
+                            </button>
+                            <button class="friend-button reject-request">
+                                <i class="fa fa-times-circle"></i>
+                            </button>
+                        `}
+                    `;
+                    const acceptButton = li.querySelector('.accept-request');
+                    const rejectButton = li.querySelector('.reject-request');
+                    const cancelRequestButton = li.querySelector('.cancel-request');
+    
+                    acceptButton?.addEventListener('click', () => handleAcceptRequest(friend.uuid));
+                    rejectButton?.addEventListener('click', () => handleRejectRequest(friend.uuid));
+                    cancelRequestButton?.addEventListener('click', () => handleRejectRequest(friend.uuid));
+                } else {
+                    li.innerHTML = `
+                        <img src="/static/images/png-user-icon.png" alt=" Profile Image" class="mini-profile-image">
+                        <span class="friend-uuid">${friend.username}</span>
+                        <span class="friend-username">@${friend.username}</span>
+                    `;
+                    li.addEventListener('click', () => viewProfile(friend.uuid, friend.username));
+                }
+                friendsList.appendChild(li);
+            });
+        }
+    
+        searchFriendInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSearchInput();
+            }
+        });
+    
+        async function handleAddFriend(username) {
+            try {
+                const response = await fetch('/friends', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+    
+                if (response.ok) {
+                    fetchFriends();
+                } else {
+                    console.error('Error adding friend');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    
+        async function handleAcceptRequest(uuid) {
+            console.log("Accepting friend request for UUID:", uuid);
+            try {
+                const response = await fetch('/friends', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uuid })
+                });
+    
+                if (response.ok) {
+                    console.log("Friend request accepted.");
+                    await fetchFriends();
+                } else {
+                    console.error('Error accepting friend request', response.status, await response.text());
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    
+        async function handleRejectRequest(uuid) {
+            try {
+                const response = await fetch(`/friends?uuid=${uuid}`, {
+                    method: 'DELETE'
+                });
+    
+                if (response.ok) {
+                    fetchFriends();
+                } else {
+                    console.error('Error rejecting friend request');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    
+        function openModal() {
+            modal.style.display = 'block';
+        }
+    
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+    
+        function handleSearchInput() {
+            const query = searchFriendInput.value.toLowerCase();
+    
+            handleAddFriend(searchFriendInput.value ?? "").then(() => {
+                searchFriendInput.value = "";
+                fetchFriends()
+            }).catch(err => console.error(err));
+        }
+    
+        addFriendButton.addEventListener('click', openModal);
+        closeButton.addEventListener('click', closeModal);
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    
+        function viewProfile(uuid, username) {
+            friendProfile.innerHTML = `
+                <img src="/static/images/png-user-icon.png" alt=" Profile Image" class="friend-profile-image">
+                <p id="friend-fullname"><b>Username:</b> ${username}</p>
+                <button class="friend-button remove-friend" data-uuid="${uuid}">Remove Friend</button>
+            `;
+        }
+
+        // <button class="friend-button share-dataset">Share Datasets</button>
+        // <button class="friend-button view-dataset">View Current Datasets</button>
+    
+        friendProfile.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('remove-friend')) {
+                const uuid = e.target.getAttribute('data-uuid');
+                try {
+                    const response = await fetch(`/friends?uuid=${uuid}`, {
+                        method: 'DELETE'
+                    });
+    
+                    if (response.ok) {
+                        fetchFriends();
+                        friendProfile.innerHTML = '<p>Click on a friend\'s profile to see more of their information!</p>';
+                    } else {
+                        console.error('Error removing friend');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+    
+        await fetchFriends();
+    });
+    </script>
+    
+{% endblock %}

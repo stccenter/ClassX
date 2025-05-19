@@ -1,0 +1,134 @@
+{% extends 'homepage/base.html' %}
+{% block content %}
+<div class="homepage_home">
+    <!-- headerHomeContent-->
+    <div class="header">
+        <div class="header-content">
+            <h2 style="color:white">{{ WEBSITE_NAME }} Training<br>Datasets Labeling Tool</h2>
+            <button>Go to Dashboard</button>
+        </div>
+        <div class="header-carousel">
+            <div class="header-carousel__items">
+                <div class="header-carousel__item active"> 
+                 <!-- <img src="static/images/homepage_images/DMS_1604309_10159_20160422_00284468.png" width="1700" height="615" alt="Icebridge Image" class="center"> -->
+                </div>
+                <div class="header-carousel__item"> 
+                 <!--  <img src="static/images/homepage_images/aia_20120602_195955_0193_image_lev1.png" width="1700" height="615" alt="HelioPhysics Image" class="center"> -->
+                </div>
+            </div>
+            <div class="header-carousel__btn header-carousel__btn-left"><</div>
+            <div class="header-carousel__btn header-carousel__btn-right">></div>
+            <div class="header-carousel__pages">
+                <div class="header-carousel__page active"></div>
+                <div class="header-carousel__page"></div>
+            </div>
+        </div>
+
+    </div> 
+
+    <!-- about us -->
+    <div class="main">
+        <div class="aboutHome">
+            <div class="aboutHomeContainer">
+                <div class="aboutColumn">
+                    <h2>About Us<h2>
+                </div>
+
+                <div class="aboutColumn">
+                    <p> {{HOMEPAGE_ABOUT}} 
+                    </p> 
+
+                    <div class="aboutHomeBtn">
+                        <button class="aboutBtn">Learn more</button>
+                    </div>
+                </div>      
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let btn_left = document.querySelector(".header-carousel__btn-left");
+    let btn_right = document.querySelector(".header-carousel__btn-right");
+    let page_switch =document.querySelector(".header-carousel__pages");
+    let items = document.getElementsByClassName("header-carousel__item");
+    let pages = document.getElementsByClassName("header-carousel__page");
+    let goToDashboard = document.querySelector(".header-content button");
+    let aboutBtn = document.querySelector(".aboutBtn");
+    let index = 0;
+    let timer = null;
+
+    goToDashboard.addEventListener('click', function(){
+        window.location.href = "{{url_for('auth.login')}}";
+    })
+
+    aboutBtn.addEventListener('click', function(){
+        window.location.href = `/aboutus`;
+    })
+
+
+    function reset(){
+        for(let i = 0; i < items.length; i++){
+            if(items[i].classList.contains("active")){
+                items[i].classList.remove("active");
+            }
+        }
+        for(let i = 0; i < pages.length; i++){
+            if(pages[i].classList.contains("active")){
+                pages[i].classList.remove("active");
+            }
+        }
+    }
+    function move(){
+        reset();
+        items[index].classList.add("active");
+        pages[index].classList.add("active");
+    }
+
+    function move_right(){
+        console.log("right");
+        if(index < items.length-1){
+            index++;
+        }else{
+            index = 0;
+        }
+        move();
+    }
+    btn_right.addEventListener('click', move_right());
+
+
+    function move_left(){
+        console.log("left");
+        if(index > 0){
+            index--;
+        }else{
+            index = items.length-1;
+        }
+        move();
+    }
+
+    btn_left.addEventListener('click', move_left());
+
+    timer = setInterval(function(){
+        move_right();
+    },6000)
+
+    page_switch.addEventListener('click', e => {
+        if (e.target.classList.contains("header-carousel__page")) {
+            reset();
+            for (let i = 0; i < 2; i++) {
+                if (page_switch.children[i] == e.target) {
+                    items[i].classList.add("active");
+                    pages[i].classList.add("active");
+                    index = i;
+                }
+            }
+            clearInterval(timer);
+            timer=setInterval(function(){
+                move_right();
+            },6000)
+        }
+    })
+</script>
+
+{% endblock %}

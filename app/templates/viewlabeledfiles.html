@@ -1,0 +1,652 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class='popup download-bg'>
+  <div class='download-window'>
+    <div class="title"> Dataset download </div>
+    <div class="closeBtn"> <i class="fa-solid fa-xmark"></i> </div>
+    <form method="post">
+      <div class="form-object">
+        <label for="image-type">Image type:</label>
+        <select name="image-type" id="imageType">
+            <option value="h5"> HDF5 </option>
+            <option value="png_16"> PNG 16 Bit </option>
+            <option selected value="png_8"> PNG 8 Bit </option>
+            <option value="jpg"> JPG </option>
+        </select>
+      </div>
+      <div class="form-object">
+        <label for="mask-type">Mask type:</label>
+        <select name="mask-type"id="maskType">
+            <option value="h5"> HDF5 </option>
+            <option value="png_16"> PNG 16 Bit </option>
+            <option selected value="png_8"> PNG 8 Bit </option>
+            <option value="txt"> Text </option>
+            <option value="npy"> Numpy </option>
+            <option value="jpg"> JPG </option>
+        </select>
+    </div>
+    <div class="form-object">
+      <label for="download-visual">Download Visualization Overlay?:</label>
+      <select name="downloadVisual", id="visualCheck">
+          <option value=1> True </option>
+          <option value=0> False </option>
+      </select>
+  </div>
+  </form>
+  <div id="wait" style="display:none;height:90px;padding:2px">
+    <div id="image" style="display:inline;">
+        <img src="/static/gif/processing.gif" width="80" height="80">
+        <br>
+    </div>
+    <div style="font-size:12px">Please wait, images are downloading ... </div>
+  </div>
+  <div class="btn-secondary">Download</div>
+  </div>
+</div>
+<div class='popup trainModel-bg'>
+  <div class='trainModel-window'>
+    <div class="title"> Train Model </div>
+    <div class="closeBtn"> <i class="fa-solid fa-xmark"></i> </div>
+    <form method="post">
+      <div class="form-object">
+        <label for="model-type">Select Model:</label>
+        <select name="model-type" id="modelType">
+            <option value="model1"> model1 </option>
+            <option value="model2"> model2 </option>
+            <option value="model3"> model3 </option>
+            <option value="model4"> model4 </option>
+        </select>
+      </div>
+    </form>
+    <div class="btn-secondary">Train</div>
+  </div>
+</div>
+<div class="row">
+  <div class="row">
+    {% if file_type == 'HDF5' %}
+      <div style="display: flex; align-items: center;">
+        <h3>Cropped Images</h3>
+        <span id="info-icon" style="cursor: pointer; font-size: 10px; margin-left: 5px; margin-bottom: 14px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Click on a cropped image to display it's labeled images">
+          <i class="fas fa-info-circle"></i>
+        </span>
+        <p style="display:none;" id = "file_type"value = {{file_type}}>{{file_type}}</p>    
+      </div>
+      <p class="imageNumP"> Number of images: <span id="imageNum"> </span>
+        <span id="dataset-download" style="cursor: pointer; font-size: 16px; margin-left: 5px; margin-bottom: 14px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Click to download dataset">
+        <i class="fa-solid fa-download"></i></span>
+        <!-- <span class="train-model btn-secondary" >Train Model</span> -->
+      </p>
+      <div id="labelFileName" value="{{request.args.get('training_file_id')}}"  style="display: none;">
+        {{ request.args.get('training_file_name') }}
+      </div>
+      <div id="cropImages" style="display: flex; flex-wrap: wrap; justify-content: start;">
+        {% set unique_values = [] %}
+        {% for crop_image in crop_images %}
+          <div class="card viewLabelImages">
+            <img
+                src="{{ url_for('static', filename= crop_image.visualization_path ) }}"
+                alt="{{crop_image.name}}"
+                style="width:256px; height:256px; cursor: pointer;"
+                class="imgdata"
+                id="{{crop_image.id}}"
+                width="{{crop_image.width}}"
+                height="{{crop_image.height}}"
+                original-id="{{crop_image.original_image_id}}"
+                crop-size = "{{crop_image.crop_size}}"
+                last-update ="{{crop_image.last_modified_date}}"
+                onclick="cropCont(this)"
+            >
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+<div style="display:none;">
+  {% for segment_image in segment_images %}
+  <img
+      id="{{segment_image.id}}"
+      crop-id="{{segment_image.crop_image_id}}"
+      class="segment_image{{segment_image.crop_image_id}}"
+      style="width:256px; height:256px; "
+  >
+{% endfor %}
+</div>
+<div style="display:none;">
+  {% for label_image in label_images %}
+    <img
+        id="{{label_image.id}}"
+        src="{{ url_for('static', filename= label_image.color_image_path ) }}"
+        segment-id = "{{label_image.segment_image_id}}"
+        class="label_image{{label_image.segment_image_id}}"
+        style="width:256px; height:256px; "
+        onclick="highlightImage(this.id); showChart(this.id);"
+    >
+  {% endfor %}
+</div>
+<div class="modal fade" id="imgModal" tabindex="-1" role="dialog" aria-labelledby="imgModalLabel" style="background-color: rgba(0, 0, 0, 0.5);">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between align-items-center">
+            <h4 class="modal-title" id="imgModalLabel">Labeled Image View</h4>
+            <div class="d-flex">
+              <button class="action-button" onclick="prevImage()">Prev</button>
+              <button class="action-button" onclick="nextImage()">Next</button>
+              <button class="action-button" onclick="relabelImage()">Label</button>
+              <button class="action-button"type="button" onclick="deleteImage()"><i class="fa fa-trash"></i></button>
+              <button onclick="switchContent()" id="toggleButton" type="button" class="action-button me-2">Show Crop Location</button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <div id="content1">
+              <div class="row">
+                <div class="col-6">
+                  <div id="modalImageContainer"></div>
+                  <div id="modalImageCreationDate"> </div>
+                  <div id="lastUpdate"> </div>
+                </div>
+                <div class="col-6">
+                  <div id="pieChartContainer" style="display: block; height: 512px; width: 512px;"></div>
+                  <div id="placeholderText">Please click a labeled image to view its labeled area pie chart.</div>
+                </div>
+                <ul class="legend text-end">
+                  {% for label in label_map: %}
+                    <li><span class="legend" style="background-color: {{label.color}};"></span>{{label.name}}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+            <div id="content2" class="modal-body" style="display: none; text-align: center;">
+              <p id="cropImgTiff">
+                <canvas id="canvas1"></canvas>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endif %}
+<style>.highlight {
+  box-shadow: 0 0 10px #1509fd;
+}</style>
+
+<script>
+var current_page = 1;
+var records_per_page = 1;
+var current_page_label = 1;
+var records_per_page_label = 1;
+var canvas1 = document.getElementById('canvas1');
+var ctx1 = canvas1.getContext("2d");
+var cropImgTiff = document.getElementById('cropImgTiff');
+var imgObj = document.getElementsByClassName("imgdata");
+var label_images = document.getElementById("labelImages");
+var link = document.getElementsByClassName("linkref");
+const progressArea = document.querySelector(".progress-area");
+var images_label = [];
+var seg_ids = [];
+var seg_id_delete = 0;
+let crop_id = 0;
+var labelFileName = $("#labelFileName").text();
+const training_file_id = {{training_file_id}};
+var currentImageId = null;
+const class_dict = {{label_map}};
+const cropped_image = {{crop_images|tojson}}
+const segmented_images = {{segment_images|tojson}}
+const labeled_images = {{label_images|tojson}}
+const training_file = {{training_file|tojson}}
+const original_img = {{original_images|tojson}}
+const cropped_images = [];
+let current_image = null;
+let current_image_index = 0;
+imageNum.innerHTML = cropped_image.length;
+function cropCont(element){
+  current_image = element;
+  for(let i = 0; i < cropped_images.length; i++){
+    if(current_image.id == cropped_image[i].id){
+      current_image_index = i;
+    }
+  }
+  let id = element.id;
+  console.log("element: ", element);
+  var currentCropImage = id;
+  var labeledImagesContainer = $("#modalImageContainer");
+  // Clear previous content
+  labeledImagesContainer.empty();
+  $("#pieChartContainer").html("");
+
+
+  // Loop through all related images and add them to the modal
+  var segment_images = $(".segment_image" + id);
+  segment_images.each(function() {
+    var segment_id = $(this).attr("id");
+    var label_images = $(".label_image" + segment_id);
+    label_images.each(function() {
+      var src = $(this).attr("src");
+      var originalId = $(this).attr("segment-id");
+      // Create a new image
+      var newImage = $("<img>").attr({
+          "src": src,
+          "id": originalId,
+          "style": "cursor: pointer; margin: 5px; ", // Add border style
+          "onclick": "highlightImage(event); showChart("+originalId+");"
+        }).addClass("viewLabelImages");
+      var originalImage = $("<img>").attr({
+        "src": element.src,
+        "style": "cursor: pointer; margin: 5px; ", // Add border style
+      }).addClass("viewLabelImages");
+      seg_id_delete = originalId;
+     
+      crop_id = id;
+      console.log("originalID: " , originalId);
+      // Append the new image
+      labeledImagesContainer.append(newImage);
+      labeledImagesContainer.append(originalImage);
+      /*
+      $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        dataType : 'json',
+        data: {
+          original_image_id:$(element).attr("original-id")
+        },
+        url: "{{ url_for('original.getOriginalImageById') }}",
+        success: function(data) {
+            console.log(data)
+            
+        },
+        error: function() {
+            alert('Error deleting image.');
+        }
+      });
+      */
+      let data = original_img.filter((data)=>data.id === parseInt($(element).attr("original-id")))[0]
+      console.log("data: ",data)
+      modalImageCreationDate.innerHTML = `Original creation date ${data.creation_date}`;
+      lastUpdate.innerHTML = `Last update date: ${$(element).attr("last-update")}`;
+      
+    });
+  });
+  
+  $("#imgModal").modal("show");
+  $("#content1").show();
+  $("#content2").hide();
+  $("#placeholderText").show();
+  $("#pieChartContainer").hide();
+  currentImageId = id;
+}
+
+
+function prevImage(){
+  if(current_image_index > 0){
+    //closeBtn.click();
+    current_image_index--;
+    cropped_images[current_image_index].click();
+  }
+}
+
+function nextImage(){
+  if(current_image_index < cropped_images.length-1){
+    //closeBtn.click();
+    current_image_index++;
+    cropped_images[current_image_index].click();
+  }
+}
+function relabelImage(){
+  window.location.href = "{{ url_for('label.label') }}"+`?crop_image_id=${crop_id}`;
+}
+
+function deleteImage() {
+    var file_type = $('#file_type').attr('value');
+    var segment_image_id = seg_id_delete;// Extract seg_id from the img id
+    var training_file_name = labelFileName;
+    console.log(seg_id_delete)
+    console.log(file_type)
+    console.log(training_file_name)
+    console.log(training_file_id)
+
+    if (confirm("Are you sure you want to delete this image?")) {
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            data: {
+                segment_image_id: segment_image_id,
+                training_file_name: training_file_name,
+                training_file_id : training_file_id, // Pass the label_filename
+                file_type: file_type
+            },
+            url: "{{ url_for('label.deleteImageFromTrainingFile') }}",
+            success: function(data) {
+                // Handle success or error as needed
+                location.reload();// Remove the image element from the DOM if successful
+            },
+            error: function() {
+                alert('Error deleting image.');
+            }
+        });
+    }
+}
+
+function openModal(id) {
+    var button = document.getElementById(id);
+    var x = button.getAttribute('width');
+    var y = button.getAttribute('height');
+    var crop_size = button.getAttribute('crop-size');
+    var original_image_id = button.getAttribute('original-id');
+    console.log("original_image_id:",original_image_id)
+    /*
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: {
+          original_image_id : original_image_id
+        },
+        url: "{{url_for('original.getOriginalImageById')}}",
+        success: function(response) {
+            console.log(response)
+            var original_image = response;
+
+            var OG_height = original_image.height;
+            var OG_width = original_image.width;
+            var alias = original_image.width;
+            var thumbnail_src = "{{ url_for('static', filename = 'path') }}".replace("path",original_image.thumbnail_path);
+            console.log(thumbnail_src);
+            cropImgTiff.innerHTML = "";
+            var image = new Image(); // Using optional size for image
+            image.src = thumbnail_src
+            image.onload = drawImageActualSize; // Draw when image has loaded
+
+            /*********************draw actual image in canvas*******************
+            function drawImageActualSize() {
+                var button = document.getElementById(id);
+                console.log(button);
+                var x = button.getAttribute('width');
+                var y = button.getAttribute('height');
+                canvas1.width = OG_width/10;
+                canvas1.height = OG_height/10;
+                console.log("drawImageActualSize called");
+                console.log("canvas1 width:", canvas1.width);
+                console.log("canvas1 height:", canvas1.height);
+                imagedata = this;
+                
+                ctx1.fillStyle = 'red';
+                ctx1.fillRect(20, 20, 350, 100);
+                ctx1.drawImage(this, 0, 0, canvas1.width, canvas1.height);
+                var rectX = (x-crop_size)/10;
+                var rectY = (y-crop_size)/10;
+                var rectWidth = crop_size/10;
+                var rectHeight = crop_size/10;
+                console.log("rectX:", rectX);
+                console.log("rectY:", rectY);
+                console.log("rectWidth:", rectWidth);
+                console.log("rectHeight:", rectHeight);
+
+                ctx1.beginPath();
+                ctx1.lineWidth = 2;
+                ctx1.strokeStyle = "red";
+                ctx1.rect(rectX, rectY, rectWidth, rectHeight);
+                ctx1.stroke();
+            }
+            $("#content2").append(canvas1);
+          }
+    });
+    */
+    console.log("original_img:",original_img)
+    let data = original_img.filter((img)=> img.id === parseInt(original_image_id))[0]
+    var original_image = data;
+    console.log("original_image: ", original_image)
+    var OG_height = original_image.height;
+    var OG_width = original_image.width;
+    var alias = original_image.width;
+    var thumbnail_src = "{{ url_for('static', filename = 'path') }}".replace("path",original_image.thumbnail_path);
+    console.log(thumbnail_src);
+    cropImgTiff.innerHTML = "";
+    var image = new Image(); // Using optional size for image
+    image.src = thumbnail_src
+    image.onload = drawImageActualSize; // Draw when image has loaded
+
+    /*********************draw actual image in canvas*******************/
+    function drawImageActualSize() {
+        var button = document.getElementById(id);
+        console.log(button);
+        var x = button.getAttribute('width');
+        var y = button.getAttribute('height');
+        canvas1.width = OG_width/10;
+        canvas1.height = OG_height/10;
+        console.log("drawImageActualSize called");
+        console.log("canvas1 width:", canvas1.width);
+        console.log("canvas1 height:", canvas1.height);
+        imagedata = this;
+        
+        ctx1.fillStyle = 'red';
+        ctx1.fillRect(20, 20, 350, 100);
+        ctx1.drawImage(this, 0, 0, canvas1.width, canvas1.height);
+        var rectX = (x-crop_size)/10;
+        var rectY = (y-crop_size)/10;
+        var rectWidth = crop_size/10;
+        var rectHeight = crop_size/10;
+        console.log("rectX:", rectX);
+        console.log("rectY:", rectY);
+        console.log("rectWidth:", rectWidth);
+        console.log("rectHeight:", rectHeight);
+
+        ctx1.beginPath();
+        ctx1.lineWidth = 2;
+        ctx1.strokeStyle = "red";
+        ctx1.rect(rectX, rectY, rectWidth, rectHeight);
+        ctx1.stroke();
+    }
+    $("#content2").append(canvas1);
+
+
+}
+
+function showChart(segment_image_id) {
+    $("#placeholderText").hide();
+    $("#pieChartContainer").show();
+    $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            //dataType : 'json',
+            data: {
+                segment_image_id : segment_image_id
+                },
+            url: "{{url_for('label.getLabelArea')}}",
+            success: function(response){
+              console.log(response.segment_area);
+              showPieChart(response.segment_area);
+              }
+            })
+        }
+
+function showPieChart(segment_area)
+{
+  var dps = [];
+  
+  colorMap = {};
+  colorMap[0] = {"name":"Uncategory", "color":"#72bf77"};
+  for(var i=0; i < class_dict.length; i++){
+     colorMap[class_dict[i].id] = {"name":class_dict[i].name, "color":class_dict[i].color};
+  };
+  var chart = new CanvasJS.Chart("pieChartContainer",
+	{
+    theme: "light2",
+		title:{
+			text: "Segment Area in % of Pixels",
+      fontSize: 18,
+		},
+		data: [
+		{
+			type: "pie",
+      indexLabelFontSize: 18,
+		  radius: 120,
+      toolTipContent: "#percent %",
+      yValueFormatString: "#,##,###",
+      indexLabel: "{label} #percent%",
+			dataPoints: dps,
+      indexLabelLineColor: "darkgrey",
+      colorSet: "customColorSet"
+		}]
+	});
+
+  function parseDataPoints () {
+    $.each(segment_area, function (i, item) {
+
+      dps.push({ y: item, label: colorMap[i]["name"], color: colorMap[i]["color"] });
+    })
+    };
+    parseDataPoints();
+	chart.render();
+
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+})
+// function highlightImage(imageeId) {
+//     // Remove border from all images
+//     $(".labelimgdata").css("border", "2px solid transparent");
+//     console.log(imageId);
+//     console.log("high");
+
+//     // Add border to the clicked image
+//     $("#" + imageId).css("border", "2px solid red");
+// }
+var previousHighlightedImage;
+
+function highlightImage(event) {
+  var image = event.target;
+   
+   if (previousHighlightedImage) {
+      previousHighlightedImage.classList.remove("highlight");
+    }
+    image.classList.add("highlight");
+    previousHighlightedImage = image;
+  
+}
+
+
+function switchContent() {
+  const button = document.getElementById('toggleButton');
+
+  if ($("#content1").is(":visible")) {
+    // If content1 is visible, hide it, show content2, and call openModal
+    $("#content1").hide();
+    $("#content2").show();
+
+    // Change the button text
+    button.textContent = 'Show Labeled Images';
+
+    // Call openModal with the current image ID
+    openModal(currentImageId);
+  } else {
+    // If content2 is visible, hide it and show content1
+    $("#content2").hide();
+    $("#content1").show();
+
+    // Change the button text
+    button.textContent = 'Show Crop Location';
+  }
+}
+
+document.getElementById('dataset-download').addEventListener('click',function(){
+  console.log("donwload dataset");
+ 
+  document.querySelector(".download-bg").style.display="block";
+});
+
+/*
+document.querySelector('.train-model').addEventListener('click',function(){
+  document.querySelector(".trainModel-bg").style.display="block";
+});
+*/
+
+
+document.querySelector(".trainModel-bg .btn-secondary").addEventListener("click", function(){
+  alert("Training Model selected!")
+  /*
+  $.ajax({
+    type: 'GET',
+    data: {
+      training_file_id: labeled_images[0].training_file_id,
+      model_name:modelType.value
+    },
+    url:,
+    success: function(status, message) {
+        
+    },
+    error: function(error) {
+       
+    }
+  });
+  */
+  document.querySelector(".trainModel-bg").style.display="none";
+})
+
+document.querySelector(".download-bg .btn-secondary").addEventListener("click", function(){
+  console.log("donwload dataset");
+  console.log("imageType: ", imageType.value);
+  console.log("maskType: ", maskType.value);
+  console.log("visualDownload: ", visualCheck.value);
+  $.ajax({
+    type: 'GET',
+    data: {
+      training_file_id: labeled_images[0].training_file_id,
+      image_file_type: imageType.value,
+      mask_file_type: maskType.value,
+      visual_image_check : visualCheck.value
+    },
+    xhr: function () { 
+      let xhr = $.ajaxSettings.xhr();
+      wait.style.display = "block";
+      return xhr;
+    },
+    url: "{{ url_for('label.exportTrainingImages') }}",
+    xhrFields: {
+      responseType: 'blob'  // Set the response type to blob
+    },
+    success: function(data, status, xhr) {
+        console.log(data)
+        let blob = new Blob([data], { type: 'application/zip' });
+        let link = document.createElement('a');
+        let filename = xhr.getResponseHeader('file-name');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename || 'training_file.zip';
+        link.click();
+        wait.style.display = "none";
+        document.querySelector(".download-bg").style.display="none";
+    },
+    error: function(error) {
+        let error_message = error.getResponseHeader('error');
+        console.log(typeof(error_message));
+        if (error_message == null){
+          error_message = "Export failed cause unknown";
+        }
+        alert(error_message);
+    }
+  });
+  //window.location.href = `/exportTrainingImages/?training_file_id=${labeled_images[0].training_file_id}&image_file_type=${imageType.value}&mask_file_type=${maskType.value}`;
+  
+})
+
+document.querySelector(".download-bg .closeBtn").onclick = function(){
+  document.querySelector(".download-bg").style.display="none";
+}
+
+document.querySelector(".trainModel-bg .closeBtn").onclick = function(){
+  document.querySelector(".trainModel-bg").style.display="none";
+}
+$(document).ready(function(){
+  for (const child of cropImages.children) {
+    for (const kid of child.children) {
+      cropped_images.push(kid);
+    }
+  }
+})
+</script>
+{% endblock %}

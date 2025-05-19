@@ -1,0 +1,94 @@
+{% if images == 0 %}
+<tr id="tr_noimage">
+    <td colspan="8">No images to show</td>
+</tr>
+{% else %}
+{% for image in images %}
+  <tr id="tr_{{ image.id }}">
+    <td>
+      <img id="{{image.name}}"
+          alt = ""
+          src="{{ url_for('static', filename= image.thumbnail_path ) }}"
+          data-toggle="modal"
+          image_name="{{image.name}}"
+          width=120 height=75
+          thumbnailsrc="static/{{image.thumbnail_path}}"
+          data-target="#preview"
+          style="cursor: pointer;"
+          onclick="previewImage(this);">
+
+    </td>
+    <td>
+      <div class="filename flex-container" id ="imageA" style="max-width: 17rem;">
+        <div class="ms-3">
+          <input type="text" id="myInput_{{ image.id }}" style="display: none" placeholder="Image Alias...">
+          <p class="fw-normal mb-0" id="myInput2_{{ image.id }}" 
+             style="display: inline-block; width: 50%; word-wrap: break-word;">
+            {{ image.alias }}&nbsp;
+          </p>
+          <!-- Check if name is different from the alias -->
+          {% if image.name != image.alias %}
+            <!-- Name text (displayed under the alias in parentheses) -->
+            <p class="fw-normal mb-0" style="display: inline-block; width: 50%; word-wrap: break-word;">
+              ({{ image.name }})
+            </p>
+          {% endif %}
+          <!-- Edit alias button -->
+          <span id="info-icon" style="cursor: pointer; font-size: 10px; vertical-align: top;" 
+                data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="top" 
+                title="Longitude: {{ image.longitude }}<br>
+                  Latitude: {{ image.latitude }}<br>
+                  Altitude: {{ image.altitude }}<br>
+                  Fstop: {{ image.fstop }}<br>
+                  GPS Date: {{ image.gps_date }}<br>
+                  Pitch: {{ image.pitch }}<br>
+                  Roll: {{ image.roll }}<br>
+                  Shutter Speed: {{ image.shutter_speed }}">
+            <i class="fas fa-info-circle"></i>
+          </span>
+          <button class="btn btn-secondary" id="showInputButton_{{ image.id }}" 
+                  onclick="showInput(this)" type="button" value="{{ image.id }}" 
+                  style="margin-left: 15px; display: inline-block; background-color: #324755; vertical-align: top;">
+              <i class="fa fa-edit" aria-hidden="true"></i>
+          </button>
+          <button class="btn btn-secondary" id="aliasInputButton_{{ image.id }}"  
+                  onclick="ImageAliasInput(this)" type="button" alias = "{{ image.id }}" 
+                  style ="display: none; background-color: #324755; vertical-align: top;" OGname="{{ image.name }}">
+            <i class="fa fa-save" aria-hidden="true"></i>
+          </button>    
+          <p class="text-muted mb-0" style="font-size: 14px;">Source: Operation IceBridge Data Portal</p>
+        </div>
+      </div>
+    </td>
+    <td>
+      <p class="fw-normal mb-1">{{ image.upload_time }}</p>
+    </td>
+    <td>
+      {% if image.uploader_name == 'default' %}
+      <p class="fw-normal mb-1">Administrator</p>
+      {% else %}
+        <p class="fw-normal mb-1">{{ image.uploader_name }}</p>
+      {% endif %}
+    </td>
+    <td>
+        <p class="fw-normal mb-1">{{ image.size }}</p>
+    </td>
+    <td>
+        <p class="fw-normal mb-1">{{ image.width  }}, {{ image.height }}</p>
+    </td>
+    <td>
+        <p class="fw-normal mb-1">{{ image.light }}</p>
+    </td>
+    <td>
+      <div class="action-button-group">
+        <a href="{{ url_for('crop') }}?id={{ image.id }}">
+          <button class="action-button open-cropping-tool" type="button">
+            <i class="fas fa-crop"></i>
+            Crop Image
+          </button>
+        </a>
+      </div>
+    </td>
+  </tr>
+{% endfor %}
+{% endif %} 

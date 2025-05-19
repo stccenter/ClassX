@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- ********************Starting of image search and image upload -->
+<!--
+<div class="row" style="margin-top:3px;">
+    <div id="alert-placeholder"></div>
+</div>
+-->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/uploadImages.css') }}">
+<div class="blurred-background">
+
+</div>
+<div class="upload_window">
+  <div class="upside">
+      <div class="upside_title">Upload Images</div>
+      <div class="upside_upload">
+          <img class="img_icon" src="{{ url_for('static',filename='images/image_icon.png') }}" alt="">
+          <div class="remind_text">Drag and drop image files to upload</div>
+          <form id = "upload-form" enctype="multipart/form-data" >
+              <input id="upside_files" type="file" name="files[]" form="imageForm" multiple>
+          </form>
+          <div class="upload_btn">
+              <label for="upside_files">Select files</label>
+          </div>
+      </div>
+
+      <section class="notification">
+        
+      </section>
+      <section class="progress-area">
+      </section>
+      <section class="uploaded-area">
+      </section>
+  </div>
+
+  <div class="downside">
+      <div class="btn downside_upload">Done</div>
+  </div>  
+</div>
+<div id="top_container">
+  <div style="display: flex;">
+    <div class="row">
+      <div class="col">
+        <div>
+          <div for="files" class="upload-button" >
+            Upload Image
+            <i class="fa fa-upload upload-icons" aria-hidden="true"></i>
+          </div>
+         
+        </div>
+      </div>
+    </div>
+    <form id="search-form" method="post" style="display:flex;">
+      <div>
+        <input type="text" id="search-query" 
+              class="clearable" name="search-query" 
+              pattern = "[a-zA-Z0-9._\(\)]+"
+              placeholder="Search By Name...">
+      </div>
+      <div>
+        <input type="submit" style="border-radius: 10px; background-color: var(--primary); 
+              color: white;margin-left: 15px; padding: 10px;" value="Search">
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="bot_container">
+  <div class="filter_container hide_filter">
+    <div id="filter_display_btn">
+      <div>Filter</div> 
+      <img class="drop_left" src="{{ url_for('static', filename='images/arrow_drop_left_icon.png') }}">
+      <img class="drop_down show" src="{{ url_for('static', filename='images/arrow_drop_down_line_icon.png') }}">
+    </div>
+    <form id="filter-form" method="post">
+      <div id="filters" >
+      </div>
+      <div class="filter_btns">
+        <button class="filter_btn" type="submit" value="Apply">Apply</button>
+        <button class="filter_btn" onclick="clearInput()"> Reset </button>
+      </div>
+
+    </form>
+  </div>
+  <div id = "image_table_container" >
+    <table id="imageTable" >
+      <thead>
+        <tr>
+          <th>Image Preview </th>
+          <th>File Name</th>
+          <th class="hideable">Upload Time (UTC)</th>
+          <th class="hideable">Creation Date (UTC)</th>
+          <th class="hideable">Uploaded By</th>
+          <th class="hideable">Size (MB)</th>
+          <th class="hideable">Dimensions (pixels)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+        </tr>
+      </tbody>
+    </table>
+    <form id="imageForm" method="post"></form>
+    <div id="showNone" style="display:none;">
+        <p> No images to show</p>    
+    </div>
+    <div class="pagination" id="pagination">
+      <button class="action-button" id="prevPageButton" onclick="prevPage()">
+        <i class="fas fa-angle-left" style="margin-right: 0;"></i>
+      </button>
+      <div class="page-info">
+        <span>Page</span>
+        <span id="currentPage"></span>
+        <span> of </span>
+        <span id="totalPages"></span>
+      </div>
+      <button class="action-button" id="nextPageButton" onclick="nextPage()">
+        <i class="fas fa-angle-right" style="margin-right: 0;"></i>
+      </button>
+    </div>
+</div>
+</div>
+
+
+<div id="previews" >
+  <div class="modal fade" id="preview" tabindex="-1"
+       role="dialog" aria-labelledby="exampleModalLabel"
+       aria-hidden="true" style="z-index: 10000;">
+    <div class="modal-dialog" role="document" style="max-width: 70%;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel"></h5>
+          <button type="button" class="action-button"
+                  data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" style="background: none;">
+              x
+            </span>
+          </button>
+        </div>
+        <div class="modal-body" style="margin: auto;"></div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script src=
+"https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity=
+"sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous">
+</script>
+<script  src="{{ url_for('static', filename='js/index_filter.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/index_uploadImage.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/index_addRow.js') }}"> </script>
+<script>
+  /*
+    #1 upload image (done)
+    #2 filter (done)
+    #3 add Row 
+    #4 research field switch
+  */
+
+  
+  //Test
+  const IMAGES = {{ images|tojson }} // the image data from backend (cur)
+  const USERS = {{ user_list|tojson }} // user list from backend (filter)
+  var CURRENT_RESEARCH_FIELD = {{ research_field | tojson}}['metadata_map'];
+  var RESEARCH_FIELD_NAME = '';
+  // symbol for filter
+  const plusSymbol = "{{ url_for('static', filename='images/plus_fill_icon.png') }}";
+  const minusSymbol = "{{ url_for('static', filename='images/minus_round_icon.png') }}";
+  const arrowDropLeft = "{{ url_for('static', filename='images/arrow_drop_left_icon.png') }}";
+  const arrowDropDown = "{{ url_for('static', filename='images/arrow_drop_down_line_icon.png') }}";
+
+ 
+  /*=================================================
+    Dynamic Filter 
+    - global variable declare
+    - reading json and corresponding html structure
+  =================================================*/
+  /*
+    remove all child tag (research field)
+  */
+  function removeAll(target){
+    while(target.firstChild){
+      target.removeChild(target.lastChild);
+    }
+  }
+
+  /*
+    researchFieldSelector (research_field)
+    input:
+    - research field name
+    output:
+    - update filter
+    - fetch data from backend
+    - update image table
+  */
+  function researchFieldSelector(research_field){
+    // update the research field name
+    let researchName = document.getElementById('show-research-button');
+    researchName.innerHTML = research_field;
+
+    RESEARCH_FIELD_NAME = research_field;
+    // remove previous research field filter
+    removeAll(FILTERS);
+
+    //research field selector
+    $.ajax({
+      type: "POST",
+      url: "{{url_for('dashboard.dashboard')}}",
+      contentType: "application/json;charset=utf-8",
+      data:{},
+      dataType: "json",
+      success: function(response) {
+        console.log("======response======")
+        console.log(response)
+        let RESEARCH_FIELD = {{research_field|tojson}}
+        console.log("======RESEARCH_FIELD======" + research_field)
+        console.log(RESEARCH_FIELD)
+        let curResearchField = response.research_field.metadata_map
+        filterCreater(curResearchField, 'filters');
+        curResearchField = curResearchField;
+        var len = response.images.length;
+        console.log("response.images.length");
+        console.log(len);
+        
+        tr = TABLE.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[0];
+          if (td) {
+            txtValue = td.textContent || td.innerText;
+            tr[i].style.display = "none";
+          }
+        }
+        var len = response.images.length;
+        console.log(len);
+        if (len > 0) {
+          for (var i = 0; i < len; i++) {
+            addRow(response.images[i].id,
+            response.images[i].name,
+            response.images[i].alias,
+            response.images[i].upload_time,
+            response.images[i].creation_date,
+            response.images[i].uploader_name,
+            response.images[i].size,
+            response.images[i].width,
+            response.images[i].height,
+            response.images[i].light,
+            response.images[i].thumbnail_path,
+            response.images[i].metadata);
+          }
+        }
+      } 
+    });
+    // background color update
+  }
+
+  /*
+    Old Project
+  */
+  var showloader = false;
+
+
+
+
+  /*
+    previewImage(button) 
+    - Image preview function
+    - after click image on each row, the image will pop out in a new window
+    - button is an <img>, which should include two attributes - image_name and thumbnailsrc 
+  */
+  function previewImage(button) {
+    // fetch information of the preview image
+    console.log("previewImage");
+    var imageName = button.getAttribute("image_name");
+    var thumbnailSrc = button.getAttribute("thumbnailsrc");
+
+    // select corresponding place
+    var modal = document.getElementById("preview");
+    var modalTitle = modal.querySelector(".modal-title");
+    var modalBody = modal.querySelector(".modal-body");
+
+    // set title
+    modalTitle.textContent = imageName;
+
+    // set image
+    var img = document.createElement("img");
+    img.src = thumbnailSrc;
+    img.style.maxWidth = "100%";
+    modalBody.innerHTML = "";
+    modalBody.appendChild(img);
+  }
+
+  /*
+    showSuccess(message)
+    showError(message)
+    howErrorInvalid(message, invalidfiles)
+    - Those three results are about image uploading
+    - adding message to alert-placeholder to feedback
+  */
+  function showSuccess(message) {
+    $('#alert-placeholder').html('<div class="alert alert-success alert-dismissible fade show" style="margin:35px;"><strong>Success! </strong>'+ message +'  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+  }
+  function showError(message) {
+    $('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible fade show" style="margin:35px;"><strong>Error! </strong>'+ message+ '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+  }
+  function showErrorInvalid(message, invalidfiles) {
+    $('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible fade show" style="margin:35px;"><strong>Error! </strong>'+ message+ '<br>' + invalidfiles +'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')  
+  }
+
+  /*
+    !Unknown Function
+  */
+  function getMonth(monthStr){
+    return new Date(monthStr+'-1-01').getMonth()+1
+  }
+  
+
+  /*
+    !!function need to discuss
+    document EventListener DOMContentLoaded
+    - work with info icon
+    - it is repeat
+    - Thus, var's scope is function block, this function is done nothing 
+    - The DOMContentLoaded event fires when the HTML document has been completely parsed, 
+      and all deferred scripts (<script defer src="…"> and <script type="module">) have downloaded and executed. 
+      It doesn't wait for other things like images, subframes, and async scripts to finish loading.
+    - 
+  */
+  document.addEventListener("DOMContentLoaded", function(){
+    // select all attribute data-bs-toggle = "tooltip", then converts the NodeList into array by slice.call
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')) 
+
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  })
+
+  /*
+    showInput(button)
+    - the button under "FILE NAME", which gives image a nickname
+    - after click button, show input area
+    - ??why using global variable in this function? (value, myInput, ...)
+    
+ 
+  function showInput(button) {
+    console.log("showInput")
+    // every variables declare here are global variable
+    value = button.getAttribute("value");
+    myInput = document.getElementById("myInput_"+value);
+    OGname = document.getElementById("myInput2_"+value);
+
+    OGname.style.display = "none";
+    myInput.style.display = "inline-block";
+    showInputButton = document.getElementById("showInputButton_"+value);
+    showInputButton.style.display = "none";
+    aliasInputButton = document.getElementById("aliasInputButton_"+value);
+    aliasInputButton.style.display = "inline-block";
+  }
+ */
+  /*
+    1. identify images -- by id 
+    2. fetch data 
+      a. image data 
+      b. metadata
+  */
+
+  function goHomepage(original_image_id) {
+
+    console.log("id:", original_image_id);
+
+    window.location.href = "{{url_for('dashboard.dashboard')}}"+`/${original_image_id}`;
+    /*
+    $.ajax({
+      type: "POST",
+      url: "/GetTargetImage",
+      data: {imageId: button.value},
+      success: function(response) {
+        if(response.status == 200){
+          console.log("response.targetImag:",response.targetImage)
+        }
+        else{
+          console.log("User does not have access to this image.")
+        }
+      } 
+    })  */
+  }
+
+  /*
+    ImageAliasInput
+    - the button show after showInput function
+    - fetch the new name in text input and pass it to backend
+  
+  function ImageAliasInput(button) {
+    // declare variable and fetch html tag
+    value = button.getAttribute("alias");
+    DMSname = button.getAttribute("OGname");
+    OGname = document.getElementById("myInput2_"+value);
+    showInputButton = document.getElementById("showInputButton_"+value);
+    aliasInputButton = document.getElementById("aliasInputButton_"+value);
+    myInput = document.getElementById("myInput_"+value);
+    aliasinput = document.getElementById("myInput_"+value);
+    valuealias = "";
+
+    
+    valuealias = DMSname;
+    
+
+    // update UI
+    OGname.style.display = "inline-block";
+    myInput.style.display = "none";
+    showInputButton.style.display = "inline-block";
+    aliasInputButton.style.display = "none";
+ 
+    // pass data to backend
+    $.ajax({
+      type: "POST",
+      url: "/ImageAlias",
+      data: { alias: valuealias, imageId: value },
+      success: function(response) {
+        value = button.getAttribute("alias");
+        if(response.status == 200){
+          document.getElementById("myInput2_"+value).innerHTML = valuealias;
+          console.log("Information stored!")
+        }
+        else{
+          console.log("User does not have access to this image.")
+        }
+       
+      } 
+    })
+  }
+  */
+  /*
+    search data from backend to frontend 
+    used by filter and search bar
+  */
+  function searchBackend(query){
+    const data = {};
+    // Iterate CURRENT_RESEARCH_FIELD to fetch filter result
+    for(const area of Object.entries(CURRENT_RESEARCH_FIELD)){
+      let name = area[0];
+      let type = area[1].type;
+      if(type == 'checkbox'){
+        let dataList = [];
+        for(let id of IMAGE_FILTER_TAG_ID_DICT.get(name)){
+          if($('#'+id).prop('checked') == true){
+            dataList.push(id.split("_").pop());
+          }
+        }
+        data[name] = {'type':type, 'data':dataList};
+      }else if(type == 'date'){
+        let dataList = {};
+        for(let id of IMAGE_FILTER_TAG_ID_DICT.get(name)){
+          let dateVal = $('#'+id).val();
+          if(dateVal != ''){
+            if(id.split("_").pop() == 'start')
+              dataList['startDate'] = dateVal;
+            else 
+              dataList['endDate'] = dateVal;
+          }else{
+            if(id.split("_").pop() == 'start')
+              dataList['startDate'] = area[1].data[0];
+            else 
+              dataList['endDate'] =  area[1].data[1];
+          }
+        }
+        data[name] = {'type':type, 'data':dataList};
+      }else if(type == 'minmax'){
+        let dataList = {};
+        for(let id of IMAGE_FILTER_TAG_ID_DICT.get(name)){
+          let dateVal = $('#'+id).val();
+          if(dateVal != ''){
+            if(id.split("_").pop() == 'min')
+              dataList['min'] = dateVal;
+            else 
+              dataList['max'] = dateVal;
+          }else{ // if user does not select any value, set to default value
+            if(id.split("_").pop() == 'min')
+              dataList['min'] = area[1].data['min'];
+            else 
+              dataList['max'] =  area[1].data['max'];
+          }
+        }
+        data[name] = {'type':type, 'data':dataList};
+      }
+    }
+    
+    $("#showNone").hide();
+    
+    // Send the filter and query result to backend at index
+    $.ajax({
+      type: "POST",
+      url: "{{url_for('dashboard.dashboard')}}",
+      contentType: "application/json;charset=utf-8",
+      data: JSON.stringify({"image_filters":data,"query":query}),
+      dataType: "json",
+      success: function(response) {
+        if (response.status == 404){
+          alert('End Date is earlier than the Start Date');
+        }
+        if (response.status == 400){
+          //table = document.getElementById("imageTable");
+          tr = TABLE.getElementsByTagName("tr");
+          for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+              txtValue = td.textContent || td.innerText;
+              tr[i].style.display = "none";
+            }
+          }
+          $("#showNone").show();
+
+        }
+        else{
+          tr = TABLE.getElementsByTagName("tr");
+          for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+              txtValue = td.textContent || td.innerText;
+              tr[i].style.display = "none";
+            }
+          }
+          var len = response.images.length;
+          console.log("reponse length: ", len)
+          if (len > 0) {
+            //clear image table first
+            console.log("===========clear image table")
+            console.log($("#imageTable tbody tr").remove());
+            $('#imageTable').find('tbody').append("<tr></tr>");
+            for (var i = 0; i < len; i++) {
+              addRow(response.images[i].id, 
+              response.images[i].name,
+              response.images[i].alias,
+              response.images[i].upload_time,
+              response.images[i].creation_date, 
+              response.images[i].uploader_name,
+              response.images[i].size,
+              response.images[i].width,
+              response.images[i].height,
+              response.images[i].light,
+              response.images[i].thumbnail_path,
+              response.images[i].metadata);
+              console.log("light: ", response.images[i].metadata['light']);
+            }
+           
+          }
+        }
+      }
+    });
+  }
+
+  
+
+  /*
+    Document ready
+    - Code included inside $( document ).ready() will only run once the page Document Object Model (DOM) 
+      is ready for JavaScript code to execute.
+  */
+  $(document).ready(function(){
+    if(window.innerWidth <= 1100){
+      if(!filterContainer.classList.contains("show_filter")){
+        filterBtns.classList.add("hide_height");
+      }
+    }
+
+    /*=================================================
+      Window on resize s
+      - update design based on window resize
+    =================================================*/
+    window.onresize = function(){
+      if(window.innerWidth <= 1100){
+        if(!filterContainer.classList.contains("show_filter")){
+          filterBtns.classList.add("hide_height");
+        }
+      }
+      if(window.innerWidth > 1100){
+        filterBtns.classList.remove("hide_height");
+      }
+    }
+ 
+    // Research Field initialization
+    let CURRENT_RESEARCH_FIELD = {{research_field|tojson}}
+    console.log(CURRENT_RESEARCH_FIELD)
+    let curResearchField = CURRENT_RESEARCH_FIELD['metadata_map']
+    console.log(`Started research field is ${curResearchField}`)
+    filterCreater(curResearchField, 'filters');
+    CURRENT_RESEARCH_FIELD = curResearchField;
+    // display data as row 
+    
+    // add row
+    for (let image of IMAGES) {
+      addRow(image.id, 
+      image.name, 
+      image.alias, 
+      image.upload_time,
+      image.creation_date, 
+      image.uploader_name, 
+      image.size, 
+      image.width, 
+      image.height,
+      image.light,
+      image.thumbnail_path,
+      image.metadata)
+    }
+    displayRows()
+    // whenever using ajax, this function will be called, !!showloader always false
+    $(document).ajaxStart(function(){
+      //console.log("ajax start")
+      if (showloader){
+        console.log("showloader")
+        $("#wait").css("display", "block");
+      }
+    });    
+
+    // whenever ajax finished, this function will be called.
+    $(document).ajaxComplete(function() {
+      //console.log("ajaxComplete")
+      $("#wait").css("display", "none");
+      showloader = false;
+    });
+    // !! need discuss, why add empty click on #files
+    $("#imageupload").click(function() {
+        console.log("files click")
+        $("#files").click();
+    });
+    
+
+    $("#upside_files").change(function({target}) {
+      let files = this.files;
+      console.log("files:");
+      console.log(files);
+      let temp_url = "{{url_for('original.uploadOriginalImages')}}";
+      if (files && files.length > 0) {
+        for(const file of files)
+          uploadFiles(file,RESEARCH_FIELD_NAME, temp_url);
+      }
+    });
+
+    $("#imageForm").submit(function(e) {
+        e.preventDefault();
+    });
+    /*
+      filter form submit
+    */
+    $("#filter-form").submit(function(e) {
+      e.preventDefault();
+      searchBackend("");
+      
+    });
+    
+    /*
+      search (dynamic)
+    */
+    $("#search-form").submit(function(e) {
+      e.preventDefault();
+      // Get the search query
+      var query = $("#search-query").val();
+      searchBackend(query)
+    });
+  });
+</script>
+
+{% endblock %}

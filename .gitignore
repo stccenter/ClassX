@@ -24,7 +24,7 @@ git-filter-repo
 test/**
 archive/**
 .vscode
-
+.env
 
 # Logs
 logs

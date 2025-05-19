@@ -1,0 +1,414 @@
+{% extends 'homepage/base.html' %}
+{% block content %}
+<div class="homepage-about">
+    <section class="homepage-about__show">
+        <div class="homepage-about__show-herotitle">
+            <pre>
+                Our mission is to help people train high-quality 
+                image dataset, link research group, and unlock 
+                endless possibilities.
+            </pre>
+        </div>
+    </section>
+
+    <div class="homepage-about__product">
+        <h2> About Our Tool </h2>
+        <div class="product_intro">
+            <div class="step">
+                <div class="image">
+                    <img src="/static/images/homepage_images/about_data_collection.svg">
+                </div>
+                <div class="description">
+                    <h3> Data Collection </h3>
+                    <div class="detail">
+                        {{ WEBSITE_NAME }} collects images with different domain from user side. 
+                    </div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="image">
+                    <img src="/static/images/homepage_images/about_data_processing.svg">
+                </div>
+                <div class="description">
+                    <h3> Data Processing </h3>
+                    <div class="detail">
+                        Users can crop image in their own way for training. Then, our tool will segement cropped image with advantage setting. 
+                    </div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="image">
+                    <img src="/static/images/homepage_images/about_model.svg">
+                </div>
+                <div class="description">
+                    <h3> Trained Model </h3>
+                    <div class="detail">
+                        After labeling, our tool will create a label model for this kind of images. Users can use this trained model to label new images.
+                    </div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="image">
+                    <img src="/static/images/homepage_images/about_model_share.svg">
+                </div>
+                <div class="description">
+                    <h3> Share Model </h3>
+                    <div class="detail">
+                        In our community, users can share or obtain trained model with other users.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="homepage-about__team"  id="homepage-about-team">
+        <h2>Meet Our Team</h2>
+        <div class="homepage-about__team-cards">
+            
+            <div class="homepage-about__team-card">
+                <div class="homepage-about__team-card-image">
+                    <img class="see-more img" src="/static/images/homepage_images/Theo.jpg">
+                </div>
+                <div class="detail">
+                    <div class="detail__personal-info">
+                        <div class="see-more name">
+                            Theodore Spanbauer
+                        </div>
+                        <div class="position">
+                            CEO & Project Lead
+                        </div>
+                        <a class="email">
+                            tspanbau@gmu.edu
+                        </a>
+                    </div>
+                    <div class="social-media">
+                        <i class="fa-brands fa-facebook"></i>
+                        <i class="fa-brands fa-square-twitter"></i>
+                    </div>
+                    <div class="see-more btn">
+                        see more
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="8" viewBox="0 0 10 8" class="jsx-2862269320 eapp-team-showcase-member-card-see-more-componentIcon"><path transform="translate(-64 -5)" d="M72.043 8.25l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708l2.147-2.146H65.25a.5.5 0 1 1 0-1h6.793z" class="jsx-2862269320"></path></svg>
+                    </div>
+                    <div class="info">
+                         <div class="info-card">
+                            <div class="close" onclick="closeWindow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="m3.426 2.024.094.083L8 6.586l4.48-4.479a1 1 0 0 1 1.497 1.32l-.083.095L9.414 8l4.48 4.478a1 1 0 0 1-1.32 1.498l-.094-.083L8 9.413l-4.48 4.48a1 1 0 0 1-1.497-1.32l.083-.095L6.585 8 2.106 3.522a1 1 0 0 1 1.32-1.498Z"></path></svg>
+                            </div>
+                            <div class="image">
+                                <img class="" src="/static/images/homepage_images/Theo.jpg">
+                            </div>
+                            <div class="description">
+                                <div class="see-more name">
+                                    Theodore Spanbauer
+                                </div>
+                                <div class="position">
+                                    CEO & Project Lead
+                                </div>
+                                <a class="email">
+                                    tspanbau@gmu.edu
+                                </a>
+                                <div class="readme">
+                                    Theodore leads ClassX with a robust background in programming and data science, steering the project towards innovation and excellence. They develop and implement the strategic vision, manage all team members, and oversee project development. A frequent participant and speaker at industry conferences such as the AGU, International Symposium on Spatiotemporal Data Science, and New Horizons Conference, Theodore builds strong relationships with stakeholders and drives the continuous improvement of ClassX’s AI/ML technologies. Their leadership ensures that ClassX remains at the forefront of automated training dataset labeling, making high-quality training datasets accessible across various scientific and engineering domains.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="homepage-about__team-card">
+                <div class="homepage-about__team-card-image">
+                    <img class="see-more img" src="/static/images/homepage_images/Jiakang.jpg">
+                </div>
+                <div class="detail">
+                    <div class="detail__personal-info">
+                        <div class="see-more name">
+                            Jiakang Liu
+                        </div>
+                        <div class="position">
+                            Frontend Developer
+                        </div>
+                        <a class="email">
+                            jliu22@gmu.edu
+                        </a>
+                    </div>
+                    <div class="social-media">
+                        <i class="fa-brands fa-facebook"></i>
+                        <i class="fa-brands fa-square-twitter"></i>
+                    </div>
+                    <div class="see-more btn">
+                        see more
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="8" viewBox="0 0 10 8" class="jsx-2862269320 eapp-team-showcase-member-card-see-more-componentIcon"><path transform="translate(-64 -5)" d="M72.043 8.25l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708l2.147-2.146H65.25a.5.5 0 1 1 0-1h6.793z" class="jsx-2862269320"></path></svg>
+                    </div>
+                    <div class="info">
+                         <div class="info-card">
+                            <div class="close" onclick="closeWindow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="m3.426 2.024.094.083L8 6.586l4.48-4.479a1 1 0 0 1 1.497 1.32l-.083.095L9.414 8l4.48 4.478a1 1 0 0 1-1.32 1.498l-.094-.083L8 9.413l-4.48 4.48a1 1 0 0 1-1.497-1.32l.083-.095L6.585 8 2.106 3.522a1 1 0 0 1 1.32-1.498Z"></path></svg>
+                            </div>
+                            <div class="image">
+                                <img class="" src="/static/images/homepage_images/Jiakang.jpg">
+                            </div>
+                            <div class="description">
+                                <div class="see-more name">
+                                    Jiakang Liu
+                                </div>
+                                <div class="position">
+                                    Frontend Developer
+                                </div>
+                                <a class="email">
+                                    jliu22@gmu.edu
+                                </a>
+                                <div class="readme">
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="homepage-about__team-card">
+                <div class="homepage-about__team-card-image">
+                    <img class="see-more img" src="/static/images/homepage_images/about_show.png">
+                </div>
+                <div class="detail">
+                    <div class="detail__personal-info">
+                        <div class="see-more name">
+                            Yousef
+                        </div>
+                        <div class="position">
+                            Backend Developer
+                        </div>
+                        <a class="email">
+                            yhassan7@gmu.edu
+                        </a>
+                    </div>
+                    <div class="social-media">
+                        <i class="fa-brands fa-facebook"></i>
+                        <i class="fa-brands fa-square-twitter"></i>
+                    </div>
+                    <div class="see-more btn">
+                        see more
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="8" viewBox="0 0 10 8" class="jsx-2862269320 eapp-team-showcase-member-card-see-more-componentIcon"><path transform="translate(-64 -5)" d="M72.043 8.25l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708l2.147-2.146H65.25a.5.5 0 1 1 0-1h6.793z" class="jsx-2862269320"></path></svg>
+                    </div>
+                    <div class="info">
+                         <div class="info-card">
+                            <div class="close" onclick="closeWindow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="m3.426 2.024.094.083L8 6.586l4.48-4.479a1 1 0 0 1 1.497 1.32l-.083.095L9.414 8l4.48 4.478a1 1 0 0 1-1.32 1.498l-.094-.083L8 9.413l-4.48 4.48a1 1 0 0 1-1.497-1.32l.083-.095L6.585 8 2.106 3.522a1 1 0 0 1 1.32-1.498Z"></path></svg>
+                            </div>
+                            <div class="image">
+                                <img class="" src="/static/images/homepage_images/about_show.png">
+                            </div>
+                            <div class="description">
+                                <div class="see-more name">
+                                    Yousef
+                                </div>
+                                <div class="position">
+                                    Backend Developer
+                                </div>
+                                <a class="email">
+                                    yhassan7@gmu.edu
+                                </a>
+                                <div class="readme">
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="homepage-about__team-card">
+                <div class="homepage-about__team-card-image">
+                    <img class="see-more img" src="/static/images/homepage_images/Jared.png">
+                </div>
+                <div class="detail">
+                    <div class="detail__personal-info">
+                        <div class="see-more name">
+                            Jared Trigg
+                        </div>
+                        <div class="position">
+                            Research Assistant
+                        </div>
+                        <a class="email">
+                            jtrigg@gmu.edu
+                        </a>
+                    </div>
+                    <div class="social-media">
+                        <i class="fa-brands fa-facebook"></i>
+                        <i class="fa-brands fa-square-twitter"></i>
+                    </div>
+                    <div class="see-more btn">
+                        see more
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="8" viewBox="0 0 10 8" class="jsx-2862269320 eapp-team-showcase-member-card-see-more-componentIcon"><path transform="translate(-64 -5)" d="M72.043 8.25l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708l2.147-2.146H65.25a.5.5 0 1 1 0-1h6.793z" class="jsx-2862269320"></path></svg>
+                    </div>
+                    <div class="info">
+                         <div class="info-card">
+                            <div class="close" onclick="closeWindow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="m3.426 2.024.094.083L8 6.586l4.48-4.479a1 1 0 0 1 1.497 1.32l-.083.095L9.414 8l4.48 4.478a1 1 0 0 1-1.32 1.498l-.094-.083L8 9.413l-4.48 4.48a1 1 0 0 1-1.497-1.32l.083-.095L6.585 8 2.106 3.522a1 1 0 0 1 1.32-1.498Z"></path></svg>
+                            </div>
+                            <div class="image">
+                                <img class="" src="/static/images/homepage_images/Jared.png">
+                            </div>
+                            <div class="description">
+                                <div class="see-more name">
+                                    Jared Trigg
+                                </div>
+                                <div class="position">
+                                    Research Assistant
+                                </div>
+                                <a class="email">
+                                    jtrigg@gmu.edu
+                                </a>
+                                <div class="readme">
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="homepage-about__team-card">
+                <div class="homepage-about__team-card-image">
+                    <img class="see-more img" src="/static/images/homepage_images/GianSung.JPG">
+                </div>
+                <div class="detail">
+                    <div class="detail__personal-info">
+                        <div class="see-more name">
+                            Gian Sung
+                        </div>
+                        <div class="position">
+                            System Administrator
+                        </div>
+                        <a class="email">
+                            jsung24@gmu.edu
+                        </a>
+                    </div>
+                    <div class="social-media">
+                        <i class="fa-brands fa-facebook"></i>
+                        <i class="fa-brands fa-square-twitter"></i>
+                    </div>
+                    <div class="see-more btn">
+                        see more
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="8" viewBox="0 0 10 8" class="jsx-2862269320 eapp-team-showcase-member-card-see-more-componentIcon"><path transform="translate(-64 -5)" d="M72.043 8.25l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708l2.147-2.146H65.25a.5.5 0 1 1 0-1h6.793z" class="jsx-2862269320"></path></svg>
+                    </div>
+                    <div class="info">
+                         <div class="info-card">
+                            <div class="close" onclick="closeWindow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="m3.426 2.024.094.083L8 6.586l4.48-4.479a1 1 0 0 1 1.497 1.32l-.083.095L9.414 8l4.48 4.478a1 1 0 0 1-1.32 1.498l-.094-.083L8 9.413l-4.48 4.48a1 1 0 0 1-1.497-1.32l.083-.095L6.585 8 2.106 3.522a1 1 0 0 1 1.32-1.498Z"></path></svg>
+                            </div>
+                            <div class="image">
+                                <img class="" src="/static/images/homepage_images/GianSung.JPG">
+                            </div>
+                            <div class="description">
+                                <div class="see-more name">
+                                    Gian Sung
+                                </div>
+                                <div class="position">
+                                    System Administrator
+                                </div>
+                                <a class="email">
+                                    jsung24@gmu.edu
+                                </a>
+                                <div class="readme">
+                                    As a Sysadmin for ClassX, I have been responsible for implementing and managing the identity and access management system (Keycloak) integrated with our application. Additionally, I handle the setup and maintenance of our infrastructure, ensuring efficient and reliable operations. With a strong interest in DevOps methodologies, I am eager to expand my expertise in this field and contribute to the continuous improvement of our systems and deployment processes.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="homepage-about__team-card">
+                <div class="homepage-about__team-card-image">
+                    <img class="see-more img" src="/static/images/homepage_images/about_show.png">
+                </div>
+                <div class="detail">
+                    <div class="detail__personal-info">
+                        <div class="see-more name">
+                            Rakshita Chidananda
+                        </div>
+                        <div class="position">
+                            Graduate Data Assistant
+                        </div>
+                        <a class="email">
+                            rchidana@gmu.edu
+                        </a>
+                    </div>
+                    <div class="social-media">
+                        <i class="fa-brands fa-facebook"></i>
+                        <i class="fa-brands fa-square-twitter"></i>
+                    </div>
+                    <div class="see-more btn">
+                        see more
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="8" viewBox="0 0 10 8" class="jsx-2862269320 eapp-team-showcase-member-card-see-more-componentIcon"><path transform="translate(-64 -5)" d="M72.043 8.25l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708l2.147-2.146H65.25a.5.5 0 1 1 0-1h6.793z" class="jsx-2862269320"></path></svg>
+                    </div>
+                    <div class="info">
+                         <div class="info-card">
+                            <div class="close" onclick="closeWindow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="m3.426 2.024.094.083L8 6.586l4.48-4.479a1 1 0 0 1 1.497 1.32l-.083.095L9.414 8l4.48 4.478a1 1 0 0 1-1.32 1.498l-.094-.083L8 9.413l-4.48 4.48a1 1 0 0 1-1.497-1.32l.083-.095L6.585 8 2.106 3.522a1 1 0 0 1 1.32-1.498Z"></path></svg>
+                            </div>
+                            <div class="image">
+                                <img class="" src="/static/images/homepage_images/about_show.png">
+                            </div>
+                            <div class="description">
+                                <div class="see-more name">
+                                    Rakshita Chidananda
+                                </div>
+                                <div class="position">
+                                    Graduate Data Assistant
+                                </div>
+                                <a class="email">
+                                    rchidana@gmu.edu
+                                </a>
+                                <div class="readme">
+                                    I am Rakshita Chidananda, currently pursuing a Master of Science in Data Analytics Engineering at George Mason University. As a passionate graduate engineering student, I am deeply committed to exploring the captivating intersections of technology and research. Presently, I am working as a Graduate Data Assistant with the ClassX team, where my primary focus is on research and development. This role allows me to apply my analytical skills to real-world problems, engage in innovative projects, and contribute to the advancement of data-driven solutions. My experience includes data preprocessing, model development, and performance evaluation.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+]           
+    </div>
+
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var websiteName = "{{ WEBSITE_NAME }}";
+        var teamDiv = document.getElementById('homepage-about-team');
+
+        if (websiteName !== 'ClassX') {
+            teamDiv.style.display = 'none';
+        } else {
+            teamDiv.style.display = 'block';
+        }
+    });
+
+    let teamCards = document.querySelector(".homepage-about__team-cards");
+    let xx = null;
+    teamCards.addEventListener('click', e => {
+        if(e.target.classList.contains("see-more")){
+            if(e.target.classList.contains("img") ){
+                e.target.parentElement.parentElement.childNodes[3].childNodes[7].classList.add("active");
+            }
+            else if(e.target.classList.contains("name") ){
+                e.target.parentElement.parentElement.childNodes[7].classList.add("active");
+            }
+            else if(e.target.classList.contains("btn") ){
+                e.target.parentElement.childNodes[7].classList.add("active");
+            }
+        }
+    })
+
+    function closeWindow(item){
+        console.log("close");
+        item.parentElement.parentElement.classList.remove("active");
+    }
+    $(document).ready(function(){
+        Array.from(menuNav.children).forEach(item =>
+            item.classList.remove("active")
+        );
+        console.log(menuNav.children[1]);
+        menuNav.children[1].classList.add("active");
+         
+    })
+</script>
+{% endblock %}

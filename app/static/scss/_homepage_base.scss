@@ -1,0 +1,211 @@
+.homepage {
+    header {
+        z-index: 1;
+        width: 100%;
+        padding: 0.5rem;
+        background-color: $primary-color;
+    }
+
+}
+
+.logo {
+    font-family: "Varela Round", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: #fff;
+    font-size: x-large;
+    z-index: 3;
+
+    img {
+        width: 6rem;
+        padding-left: 2rem;
+    }
+}
+
+.menu-btn {
+    position: absolute;
+    z-index: 3;
+    right: 1rem;
+    top: 1.5rem;
+    height: 20px;
+    width: 28px;
+    cursor: pointer;
+    @include transition-ease;
+
+    &__burger {
+        position: absolute;
+        right: 0;
+        top: 0.5rem;
+        width: 28px;
+        height: 3px;
+        background: set-text-color($primary-color);
+        @include transition-ease;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            width: 28px;
+            height: 3px;
+            background-color: set-text-color($primary-color);
+            @include transition-ease;
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 8px;
+            width: 20px;
+            height: 3px;
+            background-color: set-text-color($primary-color);
+            @include transition-ease;
+        }
+
+        &.open {
+            transform: rotate(360deg);
+            background: transparent;
+
+            &::before {
+                transform: rotate(45deg) translate(5px, 8px);
+            }
+
+            &::after {
+                width: 28px;
+                transform: rotate(-45deg) translate(3px, -7px);
+            }
+        }
+    }
+}
+
+
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    opacity: 0.98;
+    visibility: hidden;
+    z-index: 2;
+
+    &.open {
+        visibility: visible;
+    }
+
+    .menu-nav {
+        display: flex;
+        flex-flow: column wrap;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+        background: $primary-color;
+        list-style-type: none;
+        padding-right: 1rem;
+        transform: translateY(-100%);
+        @include transition-ease;
+
+        &.open {
+            transform: translateY(0);
+        }
+
+        &__item {
+            transform: translateX(100vw);
+            @include transition-ease;
+
+            &.open {
+                transform: translateX(0);
+            }
+
+            &.active>a {
+                color:lighten($titleColor,100%);
+            }
+        }
+
+        &__link {
+            display: inline-block;
+            font-size: 2rem;
+            text-transform: uppercase;
+            padding: 2rem 0;
+            font-weight: 300;
+            color: $separateLineColor;
+            @include transition-ease;
+
+            &:hover {
+                color:lighten($titleColor,100%);
+            }
+        }
+    }
+}
+
+@for $i from 1 through 7 {
+    .menu-nav__item:nth-child(#{$i}) {
+        transition-delay: ($i * 0.1s) + 0.15s;
+    }
+}
+
+/* footer design */
+footer {
+    background-color: $primary-color;
+    color: white;
+    padding: 20px 0;
+    width: 100%;
+    bottom: 0;
+    min-height: 60px;
+    position: relative;
+    margin-top: auto;
+
+    .footerContainer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        flex-wrap: wrap;
+    }
+
+    .footerLeft {
+        display: flex;
+        align-items: center;
+
+        a {
+            color: white;
+            margin-left: 10px;
+            text-decoration: none;
+        }
+
+        img {
+            margin-left: 10px;
+            width: 20px;
+            height: auto;
+        }
+    }
+
+    .footerRight {
+        display: flex;
+        align-items: center;
+
+        a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+    }
+
+    .footerBottom {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px 0;
+        flex-wrap: wrap;
+
+        p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        a {
+            color: white;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+    }
+}

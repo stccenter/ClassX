@@ -1,0 +1,77 @@
+.headerPricing {
+    background: url('/static/images/homepage_images/DMS_1604309_10159_20160422_00284468.png') no-repeat center center/cover;
+    height: 50vh;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    align-items: center;
+    color: white;
+    text-align: center;
+    background-color: $offWhiteBg;
+    z-index: 1;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    height: 60vh;
+}
+
+.pricingMain {
+    width: 80%;
+    text-align: center;
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    .pricingPlans {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        height: 40vh;
+
+        .plan {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            padding: 20px;
+            margin: 10px;
+            flex: 1;
+            max-width: 30%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+            h2 {
+                margin-top: 0;
+            }
+
+            .price {
+                font-size: 1.5em;
+                margin: 10px 0;
+            }
+
+            ul {
+                list-style: none;
+                padding: 0;
+
+                li {
+                    padding: 5px 0;
+                }
+            }
+
+            button {
+                padding: 10px;
+                background-color: $btnBg;
+                color: black;
+                border: none;
+                cursor: pointer;
+                margin-top: 10px;
+
+                &:hover {
+                    background-color: $hoverBtnBg;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,6 @@
+.rangeInput[type='number'] {
+    margin-top: 9px;
+    display: block;
+    border: 0;
+    width: 50px;
+}

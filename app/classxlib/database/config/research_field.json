@@ -1,0 +1,255 @@
+{
+    "Arctic Ice": {
+        "visibility": 1,
+        "label_map": [
+            {
+                "id": 1,
+                "name": "Water",
+                "type": "label",
+                "color": "#71b8eb",
+                "textcolor": "black"
+            },
+            {
+                "id": 2,
+                "name": "Thin_Ice",
+                "type": "label",
+                "color": "#b1ddfc",
+                "textcolor": "black"
+            },
+            {
+                "id": 3,
+                "name": "Shadow",
+                "type": "label",
+                "color": "#707070",
+                "textcolor": "black"
+            },
+            {
+                "id": 4,
+                "name": "Ice/Snow",
+                "type": "label",
+                "color": "#fff5a8",
+                "textcolor": "black"
+            },
+            {
+                "id": 5,
+                "name": "Submerged_Ice",
+                "type": "label",
+                "color": "#8d56ba",
+                "textcolor": "black"
+            },
+            {
+                "id": 6,
+                "name": "Melt_Pond",
+                "type": "label",
+                "color": "#d97796",
+                "textcolor": "black"
+            },
+            {
+                "id": 7,
+                "name": "Unknown",
+                "type": "label",
+                "color": "#0f0f0f",
+                "textcolor": "#fdf8f8"
+            }
+        ],
+        "metadata_map": {
+            "longitude": {
+                "type": "minmax",
+                "data": {
+                    "min": -180,
+                    "max": 180
+                },
+                "datatype": "float"
+            },
+            "latitude": {
+                "type": "minmax",
+                "data": {
+                    "min": -90,
+                    "max": 90
+                },
+                "datatype": "float"
+            },
+            "light": {
+                "type": "checkbox",
+                "data": [
+                    "poor",
+                    "medium",
+                    "bright"
+                ],
+                "datatype": "string"
+            },
+            "altitude": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 20000
+                },
+                "datatype": "int"
+            },
+            "fstop": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 1000
+                },
+                "datatype": "float"
+            },
+            "pitch": {
+                "type": "minmax",
+                "data": {
+                    "min": -180,
+                    "max": 180
+                },
+                "datatype": "float"
+            },
+            "roll": {
+                "type": "minmax",
+                "data": {
+                    "min": -180,
+                    "max": 180
+                },
+                "datatype": "float"
+            },
+            "shutter_speed": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 500
+                },
+                "datatype": "int"
+            }
+        },
+        "protocols": {
+            "name": "ice-bridge",
+            "mode": "RGB",
+            "auto_grid_size": 512,
+            "file_type": ".tif",
+            "file_head": "DMS",
+            "fields": {
+                "1": {
+                    "content": "digit",
+                    "length": 7
+                },
+                "2": {
+                    "content": "digit",
+                    "length": 5
+                },
+                "3": {
+                    "content": "digit",
+                    "length": 8
+                },
+                "4": {
+                    "content": "digit",
+                    "length": 8
+                },
+                "split": "_",
+                "num_fields": 4
+            }
+        }
+    },
+    "Heliophysics": {
+        "visibility": 1,
+        "label_map": [
+            {
+                "id": 1,
+                "name": "Coronal Hole",
+                "type": "label",
+                "color": "#eb3734",
+                "textcolor": "black"
+            },
+            {
+                "id": 2,
+                "name": "Bright Points",
+                "type": "label",
+                "color": "#a834eb",
+                "textcolor": "black"
+            },
+            {
+                "id": 3,
+                "name": "Filament Channel",
+                "type": "label",
+                "color": "#cf23bd",
+                "textcolor": "black"
+            },
+            {
+                "id": 4,
+                "name": "Quiet Region",
+                "type": "label",
+                "color": "#2326cf",
+                "textcolor": "black"
+            },
+            {
+                "id": 5,
+                "name": "Active Region",
+                "type": "label",
+                "color": "#b1ddfc",
+                "textcolor": "black"
+            },
+            {
+                "id": 6,
+                "name": "Unknown",
+                "type": "label",
+                "color": "#0f0f0f",
+                "textcolor": "#fdf8f8"
+            }
+        ],
+        "metadata_map": {
+            "longitude": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 360
+                },
+                "datatype": "float"
+            },
+            "latitude": {
+                "type": "minmax",
+                "data": {
+                    "min": -90,
+                    "max": 90
+                },
+                "datatype": "float"
+            },
+            "measurement": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 300
+                },
+                "datatype": "float"
+            },
+            "wavelength": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 300
+                },
+                "datatype": "float"
+            },
+            "exposure_time": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 100
+                },
+                "datatype": "float"
+            },
+            "sun_distance": {
+                "type": "minmax",
+                "data": {
+                    "min": 0,
+                    "max": 200000000000000
+                },
+                "datatype": "float"
+            }
+        },
+        "protocols": {
+            "name": "aia",
+            "mode": "intensity",
+            "auto_grid_size": 512,
+            "file_type": ".fits",
+            "file_head": "aia",
+            "fields": "None"
+        }
+    }
+}

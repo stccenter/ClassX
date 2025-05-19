@@ -1,0 +1,62 @@
+.statistics {
+    padding: 1.5rem;
+
+    &-top {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    &-mid {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+
+        .icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .geo {
+            background-color: #BFE484;
+        }
+
+        .feature {
+            background-color: #B0E0F5;
+        }
+
+        .image {
+            background-color: #F6C793;
+        }
+    }
+
+    &-bottom {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 2rem;
+
+        .prviewImage {
+            $imageSize : 450px - 48px;
+            width: 670px;
+            height: 450px;
+            padding: 1.5rem;
+
+            #show-img {
+                width: $imageSize;
+                height: $imageSize;
+                background: no-repeat;
+                background-size: contain;
+                margin: 0 auto;
+            }
+        }
+
+        .history {
+            width: 500px;
+        }
+    }
+}
+
+.secondTitle {
+    font-size: small;
+    color: $titleColor;
+}

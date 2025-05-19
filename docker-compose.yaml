@@ -1,0 +1,123 @@
+version: "3.9"
+
+volumes:
+  appdb-data:
+  kcx-data:
+  appx-data:
+
+networks:
+  appnet:
+    name: internal
+    driver: bridge
+  frontnet:
+    driver: bridge
+
+services:
+  dbx:
+    image: mysql:8.0
+    container_name: dbx
+    env_file: [.env]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: keycloak_db
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - appdb-data:/var/lib/mysql
+      - ./database/mysql-init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  kcx:
+    build:
+      context: ./docker/auth/
+      dockerfile: Dockerfile
+    image: custom-keycloak:latest
+    container_name: kcx
+    command:
+      - start-dev
+      - --features=preview
+      - --proxy=edge
+      - --import-realm
+      - --hostname-url=http://10.192.20.180/keycloak
+      - --hostname-admin-url=http://10.192.20.180/keycloak
+      - --hostname-strict=false
+      - --hostname-strict-https=false
+      - --health-enabled=true
+      - --metrics-enabled=true
+    ports:
+      - "8080:8080"
+    env_file: [.env]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB_USERNAME: ${DB_USER}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - appnet
+      - frontnet
+
+
+  appx:
+    container_name: appx
+    image: ghcr.io/sivanuhappy/classx-app:latest
+    env_file:
+      - .env
+    ports:
+      - 5001:5000
+    entrypoint: >
+      /bin/bash -c "
+      source /opt/conda/etc/profile.d/conda.sh &&
+      conda activate ClassXTool &&
+      export PYTHONPATH=/app &&
+      sleep 5 &&
+      gunicorn --workers 10 --threads 12 -b 0.0.0.0:5000 wsgi:app
+      "
+    depends_on:
+      dbx:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - appnet
+      - frontnet
+        
+
+  redis:
+    container_name: redis
+    image: redis:7.2.5
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - kcx
+    networks:
+      - appnet
+      - frontnet
+    restart: unless-stopped
+

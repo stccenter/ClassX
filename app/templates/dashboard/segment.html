@@ -1,0 +1,1965 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<!-- Hide area - compare segmented image -->
+<div class="popup compare-section">
+    
+    <div class="compare-operation">
+        <div class="compare-section-cross">
+            <i class="fa fa-x"></i>
+        </div>
+        <!-- Segment Image list -->
+        <div class="compare-img-list">
+        
+        </div>
+        <!-- compare left part -->
+        <div class="compare-left">
+            <div class="compare-left-drop">
+            </div>
+            <div class="compare-left-info">
+            </div>
+        </div>
+        <!-- compare right part -->
+        <div class="compare-right">
+            <div class="compare-right-drop">
+            </div>
+            <div class="compare-right-info">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Hide area - label section -->
+<div class="popup label-section">
+    <div class="label-operation block">
+        <div class="title">
+            Label Image
+        </div>
+        <div class="label-dashboard">
+            <div class="label-left block">
+                <div class="sub-title">
+                    Image Labeling
+                </div>
+                <div class="labels">
+                    <form method="post">
+                        <select id="label-menu" name="label-menu" class="drop-down" style="cursor: pointer;">
+                            
+                        </select>
+                    </form>
+                    <i class="fa-solid fa-image image-zoom-btn"></i>
+                </div>
+                <div class="label-left__labeling_and_zoom">
+                    <div class="zoom-img">
+                        <img id="image-zoom" width="512" height="512" >
+                    </div>
+                    <div class="labeling-img">
+                        <canvas id="segCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="labeling-detail">
+                    <table class="table table-sm" style="margin-bottom: 0;">
+                        <tbody>
+                          <tr>
+                            <td  style="padding: .5rem;">
+                              Total Segments:
+                              <span id="totalSegs" style="font-family:verdana;">0</span>
+                            </td>
+                            <td  style="padding: .5rem;">
+                              Labeled Segments:
+                              <span id="labelSegs" style="font-family:verdana">0</span>
+                            </td>
+                            <td  style="padding: .5rem;">
+                              Unlabeled Segments:
+                              <span id="unlabelSegs" style="font-family:verdana">0</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                </div>
+            </div>
+            <div class="label-right">
+                <div class="statistics-top">
+                    <div class="statistics-top__original_crop_image block" >
+                        <div id="zoomResult" class="img-zoom-result"></div>
+                        <i class="fa-solid fa-magnifying-glass-plus zoomin"></i>
+                        <i class="fa-solid fa-magnifying-glass-minus zoomout"></i>
+                    </div>
+                    <div class="statistics-top__statistics_chart">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <i class="fa-solid fa-chart-simple active"></i>
+                        <div id="pieChartContainer" class="label-statistics block"></div>
+                        <div id="chartContainer" class="label-statistics block"></div>  
+                    </div>
+                </div>
+                <div class="operation-bot">
+                    <div class="setting-save block">
+                        <div class="sub-title">
+                            Setting & Save
+                        </div>
+                        <div class="label-opacity">
+                            <label class="form-label" for="contrast" style="display:block;">Label Opacity</label>
+                            <div id="contrastSlider">
+                                <input
+                                    id="contrast"
+                                    class="form-range"
+                                    type="range"
+                                    max="1.0"
+                                    min="0"
+                                    step="0.1"
+                                    value="{{opacity}}"
+                                    onchange="updateOpacity(this.value)"
+                                    style="cursor: pointer;"
+                                >
+                            </div>
+                        </div>
+                        <div class="">
+                            <div  class="select-type">
+                                <label for="fileType">Select Type</label>
+                                <select id="fileType">
+                                    <option value="HDF5">HDF5</option>
+                                </select>
+                            </div>
+                            <div style="width: 80%">
+                                <input type="checkbox" id="small-area-merge" name="small-area-merge" enbale />
+                                <label for="small-area-merge">Small Area Merge</label>
+                                <div id="smallAreaSlider" style="width: 90%; display: flex;">
+                                    <input
+                                        id="smallArea"
+                                        class="form-range"
+                                        type="range"
+                                        max=".25"
+                                        min="0"
+                                        step="0.01"
+                                        value="0.00"
+                                        style="cursor: pointer;"
+                                        oninput="this.nextElementSibling.value = this.value"
+                                    >
+                                    <output>0.00</output>
+                                </div>
+                              </div>
+                            <div class="training-save-btn btn-primary">
+                                Save
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <div class="auto-label-section block">
+                        <div class="sub-title">
+                            Auto Label
+                        </div>
+                        <div id="auto_label" title="Probability Threshold - he minimum probability needed for the model to label the segment.">
+                            <div class="set-pt">
+                                <label class="form-label" for="PThreshold" style="display:block;">Probability Threshold</label>
+                                <input
+                                    type="range"
+                                    class="form-range"
+                                    id="PThreshold"
+                                    max="1"
+                                    min="0"
+                                    step="0.1"
+                                    name="prob_threshold"
+                                    oninput="PThresholdInput(this)"
+                                    style="display:block; cursor: pointer;"
+                                >
+                                <p id="PThresholdVal">0.5</p>
+                            </div>
+                            <div class="select-model">
+                                <div style="display: block; ">
+                                    <label for="model_selection" style="display:block;">Model Selection:</label>
+                                    <select id="model_selection" class="form-select" style="display:block; cursor: pointer;">
+                                    <option value="1">Random Forest</option>
+                                    <option value="0">SVM</option>
+                                    <option value="2">XGBoost</option>
+                                    <option value="3">KNN</option>
+                                    </select>
+                                </div>
+                                <div style="display: block; ">
+                                    <label for="label_file_selection" style="display:block;">Training File Selection:</label>
+                                    <select id="label_file_selection" class="form-select" style="display:block; cursor: pointer;">
+                                        <option value="0">Default</option>
+                                    
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="auto-label-confirm btn-secondary">
+                                Confirm
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-primary close-label">
+                    Done
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Hide area - training file save window -->
+<div class="save-label-section block" id="saveModal" style="position: fixed;">
+    <div class="save-training-cross">
+        <i class="fa fa-x"></i>
+    </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="sub-title">Save Labeling</div>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                    onclick="reset()"
+                ></button>
+            </div>
+            <div class="modal-body" id="saveModalBody">
+                <div class="row">
+                    <div class="col">
+                        How do you want to save your labeling?
+                    </div>
+                    <div class="col">
+                        <select
+                            id="saveType"
+                            onchange="showNextOption(this)"
+                            class="form-select"
+                            aria-label="Default select example"
+                        >
+                            <option value="1">Create New</option>
+                            <option value="2">Append to Existing</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row" id="colDetails">
+                    <div class="col">
+                        <p>Provide a file name:</p>
+                    </div>
+                    <div class="col">
+                        <input type="text" id="labelFileName" class="form-control" style="cursor: pointer;">
+                    </div>
+                </div>
+                <div id="filealert-placeholder"></div>
+            </div>
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-primary">Save</button> -->
+                <div class="segmentCol">
+                    <button id="saveData" class="action-button" onclick="saveFile()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Show area -->
+<div class="title">
+    Segmentation
+</div>
+<div class="segment-dashboard"> 
+    <div class="popup segment-img-preview-section">
+        <div class="segment-img-preview">
+            <div class="sub-title">
+                Image Preview
+            </div>
+            <div id="wait" style="display:none;width:90px;height:90px;padding:2px">
+                <div id="image" style="display:inline;">
+                    <img src="/static/gif/processing.gif" width="80" height="80">
+                    <br>
+                </div>
+                <div id="texts" style="display: inline-block;white-space:nowrap;text-align: center;">
+                    <p>Please wait while we generate segment images...</p>
+                </div>
+            </div>
+            <div class="preview-img">
+            </div>
+            <div class="mark-cancel-btn btn-secondary">
+                Cancel
+            </div>
+            <div class="mark-save-btn btn-primary">
+                Save
+            </div>
+        </div>
+    </div>
+    <div class="left-col">
+        <div class="algorithm-selector custom-select algorithm">
+            <select id="menu" name="menu" class="drop-down" onchange="alogrithmSelector()" style="cursor: pointer;">
+                <option value="2">SLIC Segementation</option>
+                <option value="3">Quickshift Segementation</option>
+                <option value="1">Watershed Segmentation</option>
+                <option value="4">Felzenswalb Segementation</option>
+            </select>
+        </div>
+        <div class="setting algorithm block">
+            <div class="sub-title algorithm-name">
+                SLIC Segementation
+            </div>
+            <form id="segmentForm">
+                <div class="pre-processing">
+                    <div class="step-name" title="Pre-Processing - Image Manipulation and Adjustments to prepare it for segmentation">
+                        Pre-Processing
+                    </div>
+                    <div id="rtt">
+                        <label>
+                            <div title="Multi-processing">
+                                <input
+                                type="hidden"
+                                value="0"
+                                name="multiProcessingCheck"
+                                class="multiProcessingCheckID"
+                                >
+                                <input
+                                    type="checkbox"
+                                    id="multiProcessingCheckID"
+                                    name="multiProcessingCheck"
+                                    value="1"
+                                    class="multiProcessingCheckID"
+                                >
+                                Multi Processing
+                            </div>
+                        </label>
+                        <label>
+                            <div title=" Light Adjustment - Generates additional image previews for the user to pick. The images have their lighting adjusted before segmentation.">
+                                <input
+                                type="hidden"
+                                value="0"
+                                name="LightAdjustmentCheck"
+                                class="LightAdjustmentCheckID"
+                                >
+                                <input
+                                    type="checkbox"
+                                    id="LightAdjustmentCheckId"
+                                    name="LightAdjustmentCheck"
+                                    value="1"
+                                    class="LightAdjustmentCheckID"
+                                >
+                                Light Adjustment
+                            </div>
+                        </label>
+                        <label>
+                            <div title="Contrast Stretching - Increases the distance between the lowest and highest intensity pixels and levels out the rest between that range.">
+                                <input
+                                    type="hidden"
+                                    value="0"
+                                    name="ContrastStretchCheck"
+                                    class="ContrastStretchCheckID"
+                                >
+                                <input
+                                    type="checkbox"
+                                    name="ContrastStretchCheck"
+                                    value="1"
+                                    class="ContrastStretchCheckID"
+                                    id="ContrastStretchCheckID"
+                                >
+                                Contrast Stretching
+                            </div>
+                        </label>
+                        <label>
+                            <div title="Determines most dominant colors based on number of clusters using an Adaptive or KMeans algorithm and quantizes the image to a reduced palette of those dominant colors.">
+                                <input
+                                    type="hidden"
+                                    value="0"
+                                    name="ColorClustCheck"
+                                    class="ColorClustCheckID"
+                                >
+                                <input
+                                    type="checkbox"
+                                    name="ColorClustCheck"
+                                    value="1"
+                                    class="ColorClustCheckID2"
+                                    id="ColorClustCheckID2"
+                                >
+                                Color Clustering
+                            </div>
+                        </label>
+                        <div id="ColorClustCheckOn" style="display:none;">
+                            <label for="menuColor"></label>
+                            <select id="menuColor" name="menuColor">
+                                <option value="1">Adaptive</option>
+                                <option value="2">K-means</option>
+                            </select>
+                            <div title="The amount of clusters/colors to generate from color clustering.">
+                                <label class="form-label" for="ColorCluster" style="display:block;">Color Clusters</label>
+                                <input
+                                    type="range"
+                                    class="form-range"
+                                    id="ColorCluster"
+                                    min="1"
+                                    max="25"
+                                    step="1"
+                                    name="Color_Clusters0"
+                                    oninput="ColorClustInput(this)"
+                                    style="display:block;"
+                                >
+                                <input type="number" id="ColorClustVal" class="rangeInput"min="1"
+                                max="25"
+                                step="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="algorithm-setting">
+                    <div class="SLIC alogrithm-block">
+                        <div id="SLIC10">
+                            <div class="step-name" title="SLIC - Segments an Image using Kmeans and Super Pixels highly recommendmended to use with Region Merging">
+                                    SLIC Segmentation
+                            </div>
+                            <div id="SLIC">
+                                <div title="Segmentation Level - Amount of Segments to be generated with SLIC one level equals 25 segments">
+                                    <label class="form-label" for="seglvl" style="display:block;">Segmentation Level</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="seglvl"
+                                        min="1"
+                                        max="25"
+                                        step="1"
+                                        name="segmentation_level0"
+                                        oninput="SegLvlInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="SegLvlVal" class="rangeInput"  max="25"
+                                        min="1"
+                                        step="1">
+                                </div>
+                                <div title="Compactness - Compacts segments during generation to be less random. The higher the number the more squareish they form">
+                                    <label class="form-label" for="Compact" style="display:block;">Compacting</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="Compact"
+                                        max="50"
+                                        min="1"
+                                        step="1"
+                                        name="Compact0"
+                                        oninput="CompactInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="CompactVal" class="rangeInput"  max="50"
+                                        min="1"
+                                        step="1">
+                                </div>
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="EdgeSmooth" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="EdgeSmooth"
+                                        max="10"
+                                        min="0"
+                                        step="0.1"
+                                        name="Edge_Smooth0"
+                                        oninput="EdgeSmoothInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="EdgeSmoothVal" class="rangeInput"  max="10"
+                                        min="0"
+                                        step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="Watershed alogrithm-block">
+                        <div id="watershed_seg10" >
+                            <div class="step-name" title="Watershed - Segments an image based on markers generated from apportioning pixels into marked basins.">
+                                    Watershed Segmentation
+                            </div>
+                            <div id="watershed_seg">
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="gaussSigma" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="gaussSigma"
+                                        max="10"
+                                        min="1"
+                                        step="0.1"
+                                        name="gauss_sigma0"
+                                        oninput="gaussSigmaInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="gaussSigmaVal" class="rangeInput"  max="10"
+                                        min="1"
+                                        step="0.1">
+                                </div>
+                                <!-- precision by 2 digits step by 0.01 -->
+                                <div title="Feature Separation - Minimum distance, in pixels, between the center point of multiple features.">
+                                    <label class="form-label" for="featureSep" style="display:block;">Feature Separation</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="featureSep"
+                                        max="30"
+                                        min="1"
+                                        step="1"
+                                        name="feature_separation0"
+                                        oninput="featureSepInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="featureSepVal" class="rangeInput"  max="30"
+                                        min="1"
+                                        step="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="Felzenswalb alogrithm-block">
+                        <div id="Felz_seg10">
+                            <div class="step-name" title="Felzenswalb -  Produces an oversegmentation of a multichannel (i.e. RGB) image using a fast, minimum spanning tree based clustering on the image grid.">
+                                    Felzenswalb Segmentation
+                            </div>
+                            <div id="Felz_seg">
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="gaussSigmaF" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="gaussSigmaF"
+                                        max="10"
+                                        min="0"
+                                        step="0.1"
+                                        name="gauss_sigmaF0"
+                                        oninput="gaussSigmaFInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="gaussSigmaFVal" class="rangeInput"  max="10"
+                                        min="0"
+                                        step="0.1">
+                                </div>
+                                <!-- precision by 2 digits step by 0.01 -->
+                                <div title="Scale - Sets an observation level. Higher scale means less and larger segments.">
+                                    <label class="form-label" for="scalefel" style="display:block;">Scale</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="scalefel"
+                                        max="20"
+                                        min="1"
+                                        step="0.2"
+                                        name="scalefel0"
+                                        oninput="scalefelInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="scalefelVal" class="rangeInput"  max="20"
+                                        min="1"
+                                        step="0.2">
+                                </div>
+                                <div title="Minimum Size - Minimum segment size. Enforced using postprocessing.">
+                                    <label class="form-label" for="minSize" style="display:block;">Minimum Size</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="minSize"
+                                        max="30"
+                                        min="1"
+                                        step="1"
+                                        name="minSize0"
+                                        oninput="minSizeInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input 
+                                        type="number" id="minSizeVal" class="rangeInput"  max="30"
+                                        min="1"
+                                        step="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="Quickshift alogrithm-block">
+                        <div id="quick_seg10">
+                            <div class="step-name" title="Quicksift - Segmentation algorithm, based on an approximation of kernelized mean-shift.">
+                                    Quickshift Segmentation
+                            </div>
+                            <div id="quick_seg">
+                                <div title="Gauss Sigma - Sigma value to use in the gaussian blur applied to the image prior to segmentation.">
+                                    <label class="form-label" for="gaussSigmaQ" style="display:block;">Gauss Sigma</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="gaussSigmaQ"
+                                        max="10"
+                                        min="0"
+                                        step="0.1"
+                                        name="gauss_sigmaQ0"
+                                        oninput="gaussSigmaQInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <!--<p id="gaussSigmaQVal"></p>-->
+                                    <input 
+                                        type="number" id="gaussSigmaQVal" class="rangeInput"  max="10"
+                                        min="0"
+                                        step="0.1">
+                                    
+                                </div>
+                                <!-- precision by 2 digits step by 0.01 -->
+                                <div title="Kernal Size - Width of Gaussian kernel used in smoothing the sample density. Higher means fewer segments.">
+                                    <label class="form-label" for="kernalsize" style="display:block;">Kernal Size</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="kernalsize"
+                                        max="20"
+                                        min="1"
+                                        step="1"
+                                        name="kernalsize0"
+                                        oninput="kernalsizeInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input type="number" id="kernalsizeVal" class="rangeInput"max="20"
+                                    min="1"
+                                    step="1">
+                                </div>
+                                <div title="Max Distance - Cut-off point for segment distances. Higher means fewer segments.">
+                                    <label class="form-label" for="maxDis" style="display:block;">Max Distance</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="maxDis"
+                                        max="50"
+                                        min="1"
+                                        step="1"
+                                        name="maxDis0"
+                                        oninput="maxDisInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input type="number" id="maxDisVal" class="rangeInput" max="50"
+                                    min="1"
+                                    step="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-processing">
+                    <div class="step-name" title="Post-Processing - Segmentation Adjustments after segmentation is completed.">
+                            Post-Processing
+                    </div>
+                    <div id="pp_seg">
+                        <label>
+                            <div title="Region Merging - Performs a Region Adajency Graph or RAG and merges similar segmented regions based on their average pixel intensities using a threshold(Normalized Cut does not use a threshold).">
+                                <input
+                                    type="hidden"
+                                    value="0"
+                                    name="small_rem"
+                                >
+                                <input
+                                    type="checkbox"
+                                    name="small_rem"
+                                    value="1"
+                                    id="small_remID"
+                                >
+                                Small Feature Removal
+                                
+                            </div>
+                            <div id="SFROn" style="display: none">
+                                <label style="display: none" for="menuSFR"></label>
+                                    
+                                <div title="Merge Threshold - The threshold for region merging, if regions fall within threshold they will be merged.">
+                                    <label class="form-label" for="rem_threshold" style="display:block;">Removal Threshold</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="rem_threshold"
+                                        min="1"
+                                        max="50"
+                                        step="1"
+                                        name="rem_threshold"
+                                        oninput="rem_thresholdInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input type="number" id="rem_thresholdVal" class="rangeInput"min="1"
+                                    max="50"
+                                    step="1">
+                                </div>
+                        
+                            </div>
+                            
+                            <div title="Region Merging - Performs a Region Adajency Graph or RAG and merges similar segmented regions based on their average pixel intensities using a threshold(Normalized Cut does not use a threshold).">
+                                <input
+                                    type="hidden"
+                                    value="0"
+                                    name="RAGCheck"
+                                >
+                                
+                                
+                                <input
+                                    type="checkbox"
+                                    name="RAGCheck"
+                                    value="1"
+                                    id="RAGCheckID"
+                                >
+                                Region Merging
+                            </div>
+                            
+                        </label>
+                        
+                        
+                        <div id="RAGOn" style="display: none">
+                            <label for="menuRAG"></label>
+                            <select id="menuRAG" name="menuRAG">
+                                <option value="1">Threshold Cut</option>
+                                <option value="2">Normalized Cut</option>
+                                <option value="3">Merge Hierarchical</option>
+                            </select>
+                            <div id="RAGOn2">
+                                <div title="Merge Threshold - The threshold for region merging, if regions fall within threshold they will be merged.">
+                                    <label class="form-label" for="RAGThresh" style="display:block;">Merging Threshold</label>
+                                    <input
+                                        type="range"
+                                        class="form-range"
+                                        id="RAGThresh"
+                                        min="0.1"
+                                        max="50"
+                                        step="0.1"
+                                        name="RAG_Threshold0"
+                                        oninput="RAGThreshInput(this)"
+                                        style="display:block;"
+                                    >
+                                    <input type="number" id="RAGThreshVal" class="rangeInput" min="0.1"
+                                    max="50"
+                                    step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="mark-boundary btn-primary">
+                Mark Boundary
+            </div>
+        </div>
+    </div>
+    <div class="right-col">
+        <div class="no-segment-yet">
+            No segmented images yet.
+        </div>
+        <div class="boundary-img-gallery block">
+            <div class="sub-title boundary-img-gallery-title">
+                Preview
+                <i class="compare-btn fa fa-code-compare"></i>
+            </div>
+            <div class="seg-library">
+               
+                
+                
+            </div>
+        </div>
+        <div class="page-switch-arrow">        
+            <div class="page-switch-arrow-btn arrow-left">
+                <i class="fa fa-angle-left" style="font-size: larger;"></i>
+            </div>
+            <div class="page-switch-arrow-btn arrow-right">
+                <i class="fa fa-angle-right" style="font-size: larger;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+<script crossorigin="anonymous">  
+    console.log("=================Variable side test!================");
+    /*
+    HTML element 
+    */
+    const canvas = document.querySelector("#segCanvas");                        // Label Page - Canvas image for label
+    const labelSaveBtn = document.querySelector(".training-save-btn");          // Label Page - Training file save btn
+    const saveTrainingCross = document.querySelector(".save-training-cross");   // Training Save Window - close training save window
+    const labelSelector = $("#label-menu");                                     // Label Page - Drop down table for different label tag
+    const closeLabel = document.querySelector(".close-label");                  // Label Page - Done Btn to close label page
+    const algorithmName = document.querySelector(".algorithm-name");            // Segment Page - Algorithm setting name
+    const PThresholdVal = document.querySelector("#PThresholdVal");             // Label Page - Probability Threshold reading value
+    const PThreshold = document.querySelector("#PThreshold");                   // Label Page - Probability Threshold prograss bar
+    const labelFileSelection = document.querySelector("#label_file_selection"); // Label Page - Traing File Selection drop down table
+    const saveLabelSection = document.querySelector(".save-label-section");     // Label Page - Save training label file
+    const autoLabelConfirm = document.querySelector(".auto-label-confirm");     // Label Page - Confirm Auto Labeling
+    const markSaveBtn = document.querySelector(".mark-save-btn");               // Image Preview Window - save btn
+    const markCancelBtn = document.querySelector(".mark-cancel-btn");           // Image Preview Window - cancel btn
+    const arrowLeft = document.querySelector(".arrow-left");                    // Segment Page - page switch by arrow
+    const arrowRight = document.querySelector(".arrow-right");                  // Segment Page - page switch by arrow
+    const noSegmentYet = document.querySelector(".no-segment-yet")              // Segment page - if no seg img, show this notification
+    const compareImgList = document.querySelector(".compare-img-list");         // Segment page - Compare Window - list all segmented images
+    const compareLeftDrop = document.querySelector(".compare-left-drop");       // Segment page - Compare Window - left drop area
+    const compareRightDrop = document.querySelector(".compare-right-drop");     // Segment page - Compare Window - right drop area
+    const compareLeftInfo = document.querySelector(".compare-left-info");       // Segment page - Compare Window - left information area
+    const compareRightInfo = document.querySelector(".compare-right-info");     // Segment page - Compare Window - right information area
+    const compareBtn = document.querySelector(".compare-btn");                  // Segment page -  compare btn to start segment image comparison
+    const compareSection = document.querySelector(".compare-section")           // Segment page - Compare window
+    const compareSectionCross = document.querySelector(".compare-section-cross")// Segment page - Close compare window
+    const pieChart = document.querySelector("#pieChartContainer");              // Label Page   - pie chart
+    const barChart = document.querySelector("#chartContainer");                // Label Page   - bar chart
+    const pieChartBtn = document.querySelector(".statistics-top__statistics_chart .fa-chart-pie")
+    const barChartBtn = document.querySelector(".statistics-top__statistics_chart .fa-chart-simple")
+    const imageZoom = document.querySelector("#image-zoom");
+    const imageZoomBtn = document.querySelector(".image-zoom-btn");
+    const zoomIn = document.querySelector(".zoomin");
+    const zoomOut = document.querySelector(".zoomout");
+    /*
+    Response variable
+    */
+    
+    const cropIMG = {{crop_image|tojson}};           // Response Variable - Crop image object
+    const cropID = cropIMG.id;                      // Response Variable - Crop image id
+    let IMG = {{ original_image| tojson }};             // Response Variable - Original image
+    /*
+    Data Structure
+    */
+    let totalSegments, labeledSegments, unlabeledSegments;  // Label Page - Counters use to count number of Segments, labeled, and unlabeled parts
+    let labelmap;                                           // Label Page - A list use to hold all label objects
+    let ctx = canvas.getContext("2d");                      // TODO - remove duplicate
+    let segID = "";                                         // current labeling segmentation id
+    let imagedata = null;                                   // I don't know yet
+    let image_click;                                        // ID in segGallery.list to identify which segment card is working
+    let SEGIMG = [];                                        // I don't know yet
+    let currentSEGIMG = '';                                 // Image Preview Window - if user want to save preview, this variable will store that segmented obj.hist_method
+    let currentTrainingFile = "";
+    let draggedBox;                                         // Public vairable to store current dragging element
+    let screenWith = 0;
+    const settingMAP = {
+        contrast_stretch:"Constrast Stretching",
+        hist_method:"Light Adjustment",
+        last_used_date:"Last used date",
+        rag_method:"Region Merging Method",
+        rag_threshold:"Region Merging Threshold",
+        shared_by:"Shared by",
+        shared_from:"Shared from",
+        small_rem_method:"Small Feature",
+        small_rem_threshold:"Small Feature Threshold"
+    }
+    /*
+        URL for
+    */
+    let segmentPreviewURL = "{{url_for('segment.previewSegmentImage')}}";
+    let segmentSaveURL = "{{url_for('segment.saveSegmentImage')}}";
+    let loadAllSegementImg = "{{url_for('segment.getSegmentImages')}}";
+    let autoLabelImageURL = "{{url_for('label.autoLabelImage')}}";
+
+    const algorithmSelector = $("#menu");
+    const algorithmSLider = document.querySelector(".algorithm-setting");
+    const markBoundary = document.querySelector(".mark-boundary");
+    const prevewSection = document.querySelector(".segment-img-preview-section");
+    const prevewSectionBG = document.querySelector(".segment-img-preview");
+    
+    const previewImage = document.querySelector('.preview-img');
+    const segLibrary = document.querySelector(".seg-library");
+    const labelSection = document.querySelector(".label-section");
+    const lightingAdjustmentCheck = document.querySelector("#LightAdjustmentCheckId");
+    let segGallery = null;
+    let currentLabel = null;
+</script>
+<script  src="{{ url_for('static', filename='js/compare_imgs.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/hp_seg_behavior.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/hp_seg_datapass.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/gallery.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/auto_label.js') }}"> </script>
+<script  src="{{ url_for('static', filename='js/imageZoom.js') }}"> </script>
+<script crossorigin="anonymous">
+
+    /*
+        Compare list all card
+        - selectable
+        - hover to show more
+        - drag to left or right
+    */
+    compareBtn.addEventListener('click',function(){
+        compareSection.style.display = "block";
+    })
+
+    compareSectionCross.addEventListener('click',function(){
+        console.log("hello")
+        compareSection.style.display = "none";
+    })
+    /*
+        Get mouse position 
+    */
+    function getMousePos(canvas, evt) {
+        let imageCoords = imagedata.getBoundingClientRect();
+        let canvasCoords = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - canvasCoords.left,
+          y: evt.clientY - canvasCoords.top
+        };
+    }
+    /*
+        Segmentation on click 
+    */
+    canvas.addEventListener("click", segmentImageClick);
+    function segmentImageClick(evt){
+        seg_id = segID;
+        console.log("evt", evt)
+        let ctx = this.getContext("2d");
+        let mousePos = getMousePos(canvas, evt);
+        let x = parseInt(mousePos.x);
+        let y = parseInt(mousePos.y);
+        console.log("x: ", x);
+        console.log("y: ", y);
+        let actualSize = document.querySelector("#segCanvas").offsetWidth;
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            //pass only seg id, x, y
+            data: {
+                segment_image_id : seg_id,
+                x: x,
+                y: y,
+                actualSize:actualSize,
+                label_id:labelmap[labelSelector.val()-1].id
+            },
+            url: "{{url_for('label.labelSegment')}}",
+            success: function(response){
+    
+                let segObj = new Image();
+                segObj.onload = function(){
+                    ratio = this.height/this.width
+                    ctx.canvas.width = 4096;
+                    ctx.canvas.height = ctx.canvas.width * ratio;
+                    ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+                }
+                segObj.src = 'data:image/png;base64,'+ response.image_string;
+                totalSegments = parseInt(response.total_segments);
+                totalSegs.innerHTML = response.total_segments;
+                labeledSegments = parseInt(response.labeled_segments);
+                labelSegs.innerHTML = labeledSegments;
+                unlabeledSegments = totalSegments - labeledSegments;
+                unlabelSegs.innerHTML = unlabeledSegments;
+                unlabelSegs2 = unlabeledSegments;
+                label_class_count = response.label_class_list;
+                setTimeout(() => {
+                    screenWith = window.innerWidth;
+                    showChart(label_class_count, screenWith);
+                },100);
+                $.ajax({
+                    type: 'GET',
+                    contentType: 'application/json',
+                    data: {
+                    segment_image_id : seg_id
+                    },
+                    url: "{{url_for('label.getLabelArea')}}",
+                    success: function(response){
+                        screenWith = window.innerWidth;
+                        showPieChart(response.segment_area,screenWith);
+                    }
+                })
+            }
+        })
+    }
+
+    /*
+        label menu on change
+    */
+    labelSelector.on( "change", function() {
+        labelSelector.css("color", labelmap[labelSelector.val()-1].textcolor);
+        labelSelector.css("background-color", labelmap[labelSelector.val()-1].color);
+    });
+    /*
+        option Maker
+    */
+    function optionMaker(labelObj,id){
+        let option = document.createElement("option");
+        option.value = labelObj.id;
+        option.innerHTML = labelObj.name;
+        option.style.color = labelObj.textcolor;
+        option.style.backgroundColor = labelObj.color;
+        
+        return option;
+    }
+    /*
+        Label segmented image
+        - click on segmented image to label it
+        - or auto label
+    */
+    function loadSegmentImage(id) {
+        // display image
+        labelSection.style.display = "block";
+        // get segment image id
+        segID = segGallery.list[id].id;
+        let seg_id = segGallery.list[id].id;
+        let crop_image_id = segGallery.list[id].crop_image_id;
+        image_click = id;
+        // create a new image
+        let image = new Image(); // Using optional size for image
+        // image is the "this" in drawImageActualSize
+        let imgsrc = segGallery.list[id].marked_image_path
+        image.src = "{{ url_for('static', filename = 'path') }}".replace("path", imgsrc);
+        imageZoom.src = "{{ url_for('static', filename = 'path') }}".replace("path", cropIMG.visualization_path);
+        // Draw when image has loaded   
+        image.onload = drawImageActualSize;          
+        function drawImageActualSize() {
+          imagedata = this;
+          canvas.width = 512;
+          canvas.height = 512;
+          ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
+        }
+        // load label type
+        
+        $.ajax({
+          type: 'GET',
+          url: "{{ url_for('dashboard./dashboard/label') }}",
+          data: { crop_image_id: crop_image_id },
+          success: function (response) {
+            if(response.status == 200){
+                labelmap = response.label_map;
+                console.log("labelmap: ", labelmap)
+                labelSelector.html("");
+                for(let i = 0; i < labelmap.length; i++){
+                    labelSelector.append(optionMaker(response.label_map[i],i));
+                }
+                labelSelector.css("color", labelmap[0].textcolor);
+                labelSelector.css("background-color", labelmap[0].color);
+                console.log("response.training_files",response.training_files)
+                labelFileSelection.innerHTML = "";
+                for(let i = 0; i < response.training_files.length; i++){
+                    labelFileSelection.appendChild(makeOption(response.training_files[i].id,response.training_files[i].file_name))
+                }
+                if(currentTrainingFile != ""){
+                    labelFileSelection.value = currentTrainingFile;
+                    currentTrainingFile = "";
+                }
+            }else{
+                console.log("response", response)
+            }
+          },
+          error: function (error) {
+            console.log(error);
+          }
+        });
+    
+        setTimeout(() => {
+            // load labeled part to image
+            $.ajax({
+                type: 'GET',
+                contentType: 'application/json',
+                dataType : 'json',
+                data: {segment_image_id : seg_id},
+                url: "{{url_for('label.getLabelImage')}}",
+                success: function(response){
+                let segObj = new Image();
+                
+                segObj.onload = function(){
+                    ratio = this.height/this.width
+                    ctx.canvas.width = 4096;
+                    ctx.canvas.height = ctx.canvas.width * ratio;
+                    ctx.drawImage(this, 0, 0, ctx.canvas.width, ctx.canvas.height);
+                   
+                }
+                
+                segObj.src = 'data:image/png;base64,'+response.image_string;
+            
+                totalSegments = parseInt(response.total_segments);
+                totalSegs.innerHTML = response.total_segments;
+                labeledSegments = parseInt(response.labeled_segments);
+                labelSegs.innerHTML = labeledSegments;
+                unlabeledSegments = totalSegments - labeledSegments;
+                unlabelSegs.innerHTML = unlabeledSegments;
+                unlabelSegs2 = unlabeledSegments;
+                label_class_list = response.label_class_list;
+                setTimeout(() => {
+                    screenWith = window.innerWidth;
+                    showChart(response.label_class_list, screenWith);
+                },100);
+                $.ajax({
+                    type: 'GET',
+                    contentType: 'application/json',
+                    data: {
+                        segment_image_id : seg_id
+                        },
+                    url: "{{url_for('label.getLabelArea')}}",
+                    success: function(response){
+                        screenWith = window.innerWidth,
+                        showPieChart(response.segment_area,screenWith);
+                    }
+                })
+                }
+            })
+          }, 100);
+        
+          imageZoomFunction("image-zoom", "zoomResult", null);
+      }
+</script>
+<script crossorigin="anonymous">
+    /*
+        choose save training file to new or existing file
+    */
+
+    function showNextOption(selectObject) {
+        console.log("showNextOption")
+        let value = selectObject.value;  
+        let saveModalBody = document.getElementById('saveModalBody');
+        let colDetails = document.getElementById('colDetails');
+        let fileElement = document.querySelector('#fileType');
+        file_type = fileElement.value;
+    
+        if(value == '2'){
+    
+            if (colDetails.hasChildNodes()){
+              removeAllChildNodes(colDetails);
+            }         
+    
+            let divElement1 = document.createElement("div");
+            divElement1.className = "col"
+            colDetails.appendChild(divElement1);
+        
+            let pElement = document.createElement("p");
+            pElement.innerHTML = "Select a file";
+            divElement1.appendChild(pElement);
+    
+            let divElement2 = document.createElement("div");
+            divElement2.className = "col"
+            colDetails.appendChild(divElement2);
+    
+            let selectElement = document.createElement("select");
+            if(file_type=="HDF5"){
+                selectElement.id = "fileListHDF5";
+            }
+    
+            selectElement.className = "form-select";
+        
+            divElement2.appendChild(selectElement);
+            $.ajax({
+                type: 'GET',
+                contentType: 'application/json',
+                dataType : 'json',
+                data: {
+                    name: "123"
+                },
+                url: "{{url_for('label.getTrainingFiles')}}",
+                success: function(response){
+    
+                    $.each(response.training_files, function(i, item) {
+                        let file_name = item.file_name.toLowerCase();
+                        if (file_name.endsWith('.h5')) {
+                            item.label_type = 'labelfileshdf5';
+                            $('#fileListHDF5').append($('<option>', {
+                                value: item.id,
+                                text : item.file_name
+                            }));
+                        }
+                    });
+                }
+            }) 
+        }else{
+            if (colDetails.hasChildNodes()){
+                removeAllChildNodes(colDetails);
+            }
+    
+            let divElement1 = document.createElement("div");
+            divElement1.className = "col"
+            colDetails.appendChild(divElement1);
+        
+            let pElement = document.createElement("p");
+            pElement.innerHTML = "Provide file name";
+            divElement1.appendChild(pElement);
+        
+            let divElement2 = document.createElement("div");
+            divElement2.className = "col"
+            colDetails.appendChild(divElement2);
+        
+            let inputElement = document.createElement("input");
+            inputElement.id = "labelFileName";
+            inputElement.type = "text";
+            inputElement.className = "form-control";
+        
+            divElement2.appendChild(inputElement);
+        
+        }
+    }
+
+    /*
+        remove child functino
+    */
+    function removeAllChildNodes(parent) {
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+    }
+
+// auto labeling
+
+    /*
+        make option
+    */
+    function makeOption(val, name){
+        let option = document.createElement("option");
+        option.value = val;
+        option.innerHTML = name;
+        return option;
+    }
+
+    /*
+        label img save btn on click
+    */
+    labelSaveBtn.addEventListener("click",function(){        
+        
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            data: {
+                segment_image_id : segID,
+            },
+            url: "{{url_for('label.checkSegmentLabel')}}",
+            success: function(response){
+                console.log("unlabelSegs2", unlabelSegs2)
+                if(unlabelSegs2 !=0){
+                    if (confirm("Not all segments are labeled. Unlabeled segments are assigned to 'Unknown' class. Please click OK to confirm.")){
+                        saveUnknown(segID);
+                        saveLabelSection.style.display = "block";
+                    }
+                } else{
+                    saveLabelSection.style.display = "block";
+                }  
+            }
+        })
+    });
+
+    /*
+        save unlabel part to unknow
+    */
+
+    function saveUnknown(segment_image_id) {
+        /* 
+        Small label stuff
+        */
+        const remove_small_labels = document.getElementById("small-area-merge")?.checked || false
+        const area_removal_percentage = document.getElementById("smallArea").value || 0
+
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            data: {
+                segment_image_id : segment_image_id,
+                remove_small_labels,
+                area_removal_percentage
+            },
+            url: "{{url_for('label.setUnlabeledUnknown')}}",
+            success: function(response){
+                loadSegmentImage(image_click);
+            }
+        })  
+    }
+
+    saveTrainingCross.addEventListener("click", function(){
+        saveLabelSection.style.display = "none";
+    });
+    /*
+        save training file
+    */
+    function saveFile(){ 
+        let label_filename;
+        let file_type = document.querySelector('#fileType').value;
+        let save_type = document.querySelector('#saveType').value;
+      
+        if(save_type == 1){ // Create new training file
+            label_filename = document.getElementById('labelFileName').value;
+            if(label_filename.length == 0){
+                message = "Please enter a file name.";
+                showFileNameError(message);
+                return false;
+            }
+    
+            let validate = document.getElementById('labelFileName').value;   
+            if (!validate.endsWith('.h5')) {
+                if(file_type=="HDF5"){
+                    validate += '.h5';
+                    label_filename = validate;
+              } 
+            } 
+            let reg = /^([a-zA-Z0-9!.@#$%^&*_]*(\.h5|\.json))$/;
+            
+            let validateresult = reg.test(validate);
+            if(validateresult == false){
+                message = "Please enter name with .h5 or .json file extension.";
+                showFileNameError(message);
+                return false;
+            }
+        }
+        else{ // Append to existing training file
+            if (file_type == 'HDF5'){
+                label_filename =  $( "#fileListHDF5 option:selected" ).text();
+            }
+        }
+
+        /* 
+        Small label stuff
+        */
+
+        const remove_small_labels = document.getElementById("small-area-merge")?.checked || false
+        const area_removal_percentage = document.getElementById("smallArea").value || 0
+
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            data: {
+                segment_image_id : segID,
+                opacity_value : $('#contrast').val(),
+                file_type: file_type,
+                save_type: save_type,
+                training_file_name: label_filename,
+                remove_small_labels,
+                area_removal_percentage
+            },
+            url: "{{url_for('label.saveTrainingFile')}}",
+            success: function(response){
+                saveLabelSection.style.display = "none";
+                if (response.status == 200){
+                    console.log("response.label_files",response.label_files)
+                    labelFileSelection.innerHTML = "";
+                    for(let i = 0; i < response.label_files.length; i++){
+                        labelFileSelection.appendChild(makeOption(response.label_files[i].id,response.label_files[i].file_name))
+                    }
+                    if (response.alert !== undefined && response.alert !== null && response.alert !== None) {
+                        alert(response.alert); 
+                    }
+
+                    console.log("STATUS")
+                    console.log(response.status)
+                    notification("Training File Saved.", "#5cb85c", "#000", "20px")
+                }
+                else if(response.status == 400){
+                    console.log(response.error)
+                    notification(response.error, "#eb3734", "#000", "20px")
+                }
+            }
+        })
+    }
+
+    
+</script>
+<script crossorigin="anonymous">
+    
+   
+
+    /*
+        Image preview make card
+    */
+    function imagePreviewMakeCard(obj, mult){
+        
+        let card = document.createElement("div");
+        let img = document.createElement('img');
+        let histName = document.createElement("div");
+
+        if(mult){
+            card.setAttribute("class", "preview-card-mult");
+            card.setAttribute("histMethod", obj.hist_method)
+            img.setAttribute("class", "preview-mult-image");
+            card.setAttribute("onclick","selectLightingAdjustment(this)");
+        }else{
+            card.setAttribute("class", "preview-card");
+            img.setAttribute("class", "preview-image");
+        }
+
+        img.src = "data:image/png;base64, " + obj.image;
+        histName.innerHTML = obj.hist_name;
+        
+        card.appendChild(img);
+        card.appendChild(histName);
+        
+        return card;
+    }
+
+    function selectLightingAdjustment(obj){
+        let topRow = document.querySelector(".preview-top-row");
+        let botRow = document.querySelector(".preview-bot-row");
+        for (const child of topRow.children) {
+            child.style.backgroundColor = "#fff";
+        }
+        for (const child of botRow.children) {
+            child.style.backgroundColor = "#fff";
+        }
+        obj.style.backgroundColor = "#d1d1d1";
+        currentSEGIMG = obj.getAttribute('histMethod')
+    }
+    /*
+        Update label opacity
+    */
+    function updateOpacity(value) {
+        // Get the boundary element
+        let opacity_value = value
+        
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json',
+            dataType : 'json',
+            //pass only seg id
+            data: {segment_image_id : segID,
+                opacity_value: opacity_value
+            },
+            url: "{{url_for('label.updateLabelOpacity')}}",
+            success: function(response){
+                var segObj = new Image();
+                segObj.onload = function(){
+                    ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
+                }
+                segObj.src = 'data:image/png;base64,'+response.image_string;
+            } 
+        })
+    }
+    
+    /*
+        make a card
+        input: segGallery.list[id]
+    */
+    function segCard(id){
+        // check which algorithm is using and setting output
+        let p1Text = "", p2Text = "", p3Text = "", p1 = 0, p2 =0, p3 = 0, segmentMethod = "";
+
+        if(segGallery.list[id].segment_method == 1){ // Watershed
+            segmentMethod = "Watershed"
+            p1Text = "Gauss Sigma";
+            p2Text = "";
+            p3Text = "Feature Separation";
+        }else if(segGallery.list[id].segment_method == 2){ // SLIC
+            segmentMethod = "SLIC"
+            p1Text = "Segmentation Level";
+            p2Text = "Compacting";
+            p3Text = "Gauss Sigma";
+        }else if(segGallery.list[id].segment_method == 3){ // Quickshift
+            segmentMethod = "Quickshift"
+            p1Text = "Kernal Size";
+            p2Text = "Max Distance";
+            p3Text = "Gauss Sigma";
+        }else if(segGallery.list[id].segment_method == 4){ // Felzenswlb
+            segmentMethod = "Felzenswlb"
+            p1Text = "Gauss Sigma";
+            p2Text = "Scale";
+            p3Text = "Minimum Size";
+        }
+        p1 = segGallery.list[id].param1;
+        p2 = segGallery.list[id].param2;
+        p3 = segGallery.list[id].param3;
+        let segment_date = segGallery.list[id].name.replace(/[^0-9|_]/g, '').split('_');
+
+        // setup structure
+        let card = document.createElement("div");
+        let img = document.createElement("div");
+        let detail = document.createElement("div");
+        let detail_name = document.createElement("div");
+        let detail_date = document.createElement("div");
+        let detail_more = document.createElement("div")
+        let detail_hide = document.createElement("div");
+        let detail_hide_btn = document.createElement("div");
+        let bg = document.createElement("div");
+        let labelBtn = document.createElement("div");
+        let deleteSegBtn = document.createElement("div");
+        let reverseSettingBtn = document.createElement("div")
+        labelBtn.innerHTML = "Label";
+        deleteSegBtn.innerHTML = "Delete";
+        reverseSettingBtn.innerHTML = "Appy this setting";
+        labelBtn.setAttribute("class","label-btn btn-secondary");
+        labelBtn.setAttribute("onclick",`loadSegmentImage(${id})`)
+        deleteSegBtn.setAttribute("class","del-seg-btn btn-secondary");
+        bg.setAttribute("class","hoverBG");
+        reverseSettingBtn.setAttribute("class","btn-secondary reverse-setting-btn");
+        reverseSettingBtn.setAttribute("id",id);
+
+       
+        // assign class to each part 
+        card.setAttribute("class","seg-card");
+        img.setAttribute("class","seg-img");
+        detail.setAttribute("class","seg-detail");
+        detail_name.setAttribute("class","seg-detail-name");
+        detail_date.setAttribute("class","seg-detail-date");
+        detail_hide.setAttribute("class","seg-detail-hide");
+        detail_hide_btn.setAttribute("class","seg-detail-hide-btn");
+
+        // detail structure setting and information load
+        detail_name.innerHTML = segmentMethod;
+        detail_date.innerHTML = segment_date[2] + '-' + segment_date[0] + '-' + segment_date[1];
+        detail_hide_btn.innerHTML = "more <i class='fa fa-circle-info seg-detail-hide-btn-icon'></i>";
+        // Pre-Process Lighting Adjustment
+        let LA_name = "Default";
+        if(segGallery.list[id].light_method == 1){
+            LA_name = "Histogram Equalization";
+        }else if(segGallery.list[id].light_method == 2){
+            LA_name = "Adaptive Equalization";
+        }else if(segGallery.list[id].light_method == 3){
+            LA_name = "CLAHE";
+        }
+        detail_hide.appendChild(formatData("Lighting Adjustment", LA_name));
+        // Pre-Process Constract Stretching
+        if( segGallery.list[id].contrast_method)
+            detail_hide.appendChild(formatData("Constract Stretching", "Applied"));
+        
+        // Pre-Process Color Clustering 0: uncheck, 1: adaptive, 2: k-means
+        if(segGallery.list[id].color_method == 1){
+            detail_hide.appendChild(formatData("Color Clustering(Adaptive)", segGallery.list[id].color_clusters));
+        }else if(segGallery.list[id].color_method == 2){
+            detail_hide.appendChild(formatData("Color Clustering(K-means)", segGallery.list[id].color_clusters));
+        }
+        // Algorithm specific setting 
+        detail_hide.appendChild(formatData(p1Text, p1));
+        detail_hide.appendChild(formatData(p2Text, p2));
+        detail_hide.appendChild(formatData(p3Text, p3));
+        //  Post-Process Small Feature Removal
+        if(segGallery.list[id].small_rem_threshold != 0){
+            detail_hide.appendChild(formatData("Small Feature Removal", segGallery.list[id].small_rem_threshold));
+        }
+        //Region Merging
+        if(segGallery.list[id].region_merge_method == 1){
+            detail_hide.appendChild(formatData("Region Merging(Threshold Cut)", segGallery.list[id].region_merge_threshold));
+        }else if(segGallery.list[id].region_merge_method == 2){
+            detail_hide.appendChild(formatData("Region Merging(Normailized Cut)", segGallery.list[id].region_merge_threshold));
+        }else if(segGallery.list[id].region_merge_method == 3){
+            detail_hide.appendChild(formatData("Region Merging(Merge Hierachical)", segGallery.list[id].region_merge_threshold));
+        }
+        // Reverse Setting Btn 
+        detail_hide.appendChild(reverseSettingBtn);
+        reverseSettingBtn.addEventListener('click',function(){
+            // Pre-Process Lighting Adjustment
+            if(segGallery.list[id].light_method == 0){
+                LightAdjustmentCheckId.checked = false;
+            }else{
+                LightAdjustmentCheckId.checked = true;
+            }
+            // Pre-Process Constract Stretching
+            if( segGallery.list[id].contrast_method == 0){
+                ContrastStretchCheckID.checked = false;
+            }else{
+                ContrastStretchCheckID.checked = true;
+            }
+            // Pre-Process Color Clustering 0: uncheck, 1: adaptive, 2: k-means TODO
+            if(segGallery.list[id].color_method == 0){
+                ColorClustCheckID2.checked = false;
+                $("#ColorClustCheckOn").hide();
+            }else{
+                ColorClustCheckID2.checked = true;
+                $("#ColorClustCheckOn").show();
+                if(segGallery.list[id].color_method == 1){
+                    menuColor.value = 1;
+                }else{
+                    menuColor.value = 2;
+                }
+                ColorCluster.value = segGallery.list[id].color_clusters;
+                ColorClustVal.value = segGallery.list[id].color_clusters;
+            }
+
+            // algorithm setting 
+            if(segGallery.list[id].segment_method == 1){//Water
+                WatershedSegmentation.click();
+                gaussSigma.value = segGallery.list[id].param1;
+                gaussSigmaVal.value = segGallery.list[id].param1;
+                featureSep.value = segGallery.list[id].param3;
+                featureSepVal.value = segGallery.list[id].param3;
+            }else if(segGallery.list[id].segment_method == 2){//SLIC
+                SLICSegementation.click();
+                seglvl.value = segGallery.list[id].param1;
+                SegLvlVal.value = segGallery.list[id].param1;
+                Compact.value = segGallery.list[id].param2;
+                CompactVal.value = segGallery.list[id].param2;
+                EdgeSmooth.value = segGallery.list[id].param3;
+                EdgeSmoothVal.value = segGallery.list[id].param3;
+            }else if(segGallery.list[id].segment_method == 3){//Quick
+                QuickshiftSegementation.click();
+                kernalsize.value = segGallery.list[id].param1;
+                kernalsizeVal.value = segGallery.list[id].param1;
+                maxDis.value = segGallery.list[id].param2;
+                maxDisVal.value = segGallery.list[id].param2;
+                gaussSigmaQ.value = segGallery.list[id].param3;
+                gaussSigmaQVal.value = segGallery.list[id].param3;
+            }else if(segGallery.list[id].segment_method == 4){//F
+                FelzenswalbSegementation.click();
+                gaussSigmaF.value = segGallery.list[id].param1;
+                gaussSigmaFVal.value = segGallery.list[id].param1;
+                scalefel.value = segGallery.list[id].param2;
+                scalefelVal.value = segGallery.list[id].param2;
+                minSize.value = segGallery.list[id].param3;
+                minSizeVal.value = segGallery.list[id].param3;
+            }
+            //  Post-Process Small Feature Removal
+            if(segGallery.list[id].small_rem_method == 0){  
+                small_remID.checked = false;
+                $("#SFROn").hide();
+            }else{
+                small_remID.checked = true;
+                $("#SFROn").show();
+                rem_threshold.value = segGallery.list[id].small_rem_threshold;
+                rem_thresholdVal.value = segGallery.list[id].small_rem_threshold;
+            }
+            // Post-Process Merging Threshold
+            if(segGallery.list[id].region_merge_method == 0){  
+                RAGCheckID.checked = false;
+                $("#RAGOn").hide();
+            }else{
+                RAGCheckID.checked = true;
+                $("#RAGOn").show();
+                if(segGallery.list[id].region_merge_method == 1){
+                    menuRAG.value = 1;
+                }else if(segGallery.list[id].region_merge_method == 2){
+                    menuRAG.value = 2;
+                }else if(segGallery.list[id].region_merge_method == 3){
+                    menuRAG.value = 3;
+                }
+                RAGThresh.value = segGallery.list[id].region_merge_threshold;
+                RAGThreshVal.value = segGallery.list[id].region_merge_threshold;
+            }
+        })
+
+        // package all data to card
+        detail.appendChild(detail_hide);
+        detail.appendChild(detail_name);
+        detail.appendChild(detail_date);
+        detail.appendChild(detail_hide_btn);
+        img.style.backgroundImage = `url(${"{{ url_for('static', filename = 'path') }}".replace("path", segGallery.list[id].marked_image_path)})`;
+        bg.appendChild(labelBtn);
+        bg.appendChild(deleteSegBtn);
+        img.appendChild(bg)
+        card.appendChild(img);
+        card.appendChild(detail);
+
+        return card;
+    }
+
+
+    
+    /*
+        a. transform to target algorithm block
+        b. enbale and maxDis.disabled
+    */
+    function pickAlgorithm(id){
+        algorithmName.innerHTML = "";
+        if(id == '1'){
+            algorithmName.innerHTML = "Watershed Segmentation";
+            algorithmSLider.style.transform = `translateX(-25%)`;
+        }else if(id == '2'){
+            algorithmName.innerHTML = "SLIC Segementation";
+            algorithmSLider.style.transform = `translateX(0%)`;
+        }else if(id == '3'){
+            algorithmName.innerHTML = "Quickshift Segementation";
+            algorithmSLider.style.transform = `translateX(-75%)`;
+        }else if(id == '4'){
+            algorithmName.innerHTML = "Felzenswalb Segementation";
+            algorithmSLider.style.transform = `translateX(-50%)`;
+        }
+       
+    }
+
+    /*
+        Compare Window - image maker
+    */
+    function compareCardMaker(obj) {
+        let card = document.createElement("div");
+        card.setAttribute("class","compare-img");
+        card.setAttribute("draggable","true");
+        card.style.backgroundImage = `url(${"{{ url_for('static', filename = 'path') }}".replace("path", obj.marked_image_path)})`;
+        // on drag
+        card.addEventListener("dragstart", (event) => {
+            card.classList.add("dragging");
+            draggedBox = obj;
+        })
+
+        card.addEventListener("dragend", (event) => {
+            card.classList.remove("dragging");
+        })
+        
+        return card;
+    }
+
+    /*
+        Compare Window - Load images to list
+    */
+    function compareLoadImage(){
+        for(let i = 0; i < segGallery.list.length; i++){
+            let card = compareCardMaker(segGallery.list[i]);
+            compareImgList.append(card);
+        }
+
+    }
+
+    /*
+        Compare Window - Convert seg img obj to HTML
+    */
+    function compareImageToHTML(obj){
+         // check which algorithm is using and setting output
+         let p1Text = "", p2Text = "", p3Text = "", p1 = 0, p2 =0, p3 = 0, segmentMethod = "";
+
+         if(obj.segment_method == 1){ // Watershed
+             segmentMethod = "Watershed"
+             p1Text = "Gauss Sigma";
+             p2Text = "";
+             p3Text = "Feature Separation";
+         }else if(obj.segment_method == 2){ // SLIC
+             segmentMethod = "SLIC"
+             p1Text = "Segmentation Level";
+             p2Text = "Compacting";
+             p3Text = "Gauss Sigma";
+         }else if(obj.segment_method == 3){ // Quickshift
+             segmentMethod = "Quickshift"
+             p1Text = "Kernal Size";
+             p2Text = "Max Distance";
+             p3Text = "Gauss Sigma";
+         }else if(obj.segment_method == 4){ // Felzenswlb
+             segmentMethod = "Felzenswlb"
+             p1Text = "Gauss Sigma";
+             p2Text = "Scale";
+             p3Text = "Minimum Size";
+         }
+         p1 = obj.param1;
+         p2 = obj.param2;
+         p3 = obj.param3;
+         let segment_date = obj.name.replace(/[^0-9|_]/g, '').split('_');
+ 
+         // setup structure
+         let card = document.createElement("div");
+         let img = document.createElement("div");
+         let detail = document.createElement("div");
+         let detail_name = document.createElement("div");
+         let detail_date = document.createElement("div");
+ 
+        
+         // assign class to each part 
+         card.setAttribute("class","comparing-card");
+         img.setAttribute("class","comparing-img");
+         detail.setAttribute("class","comparing-detail");
+         detail_name.setAttribute("class","seg-detail-name");
+         detail_date.setAttribute("class","seg-detail-date");
+ 
+         // detail structure setting and information load
+         detail_name.innerHTML = segmentMethod;
+         detail_date.innerHTML = segment_date[2] + '-' + segment_date[0] + '-' + segment_date[1];
+
+         // add name and date to detail
+         detail.appendChild(detail_name);
+         detail.appendChild(detail_date);
+
+         // Pre-Process Lighting Adjustment
+         let LA_name = "Default";
+         if(obj.hist_method == 1){
+             LA_name = "Histogram Equalization";
+         }else if(obj.hist_method == 2){
+             LA_name = "Adaptive Equalization";
+         }else if(obj.hist_method == 3){
+             LA_name = "CLAHE";
+         }
+         detail.appendChild(formatData("Lighting Adjustment", LA_name));
+         // Pre-Process Constract Stretching
+         detail.appendChild(formatData("Constract Stretching", obj.contrast_stretch));
+         // Pre-Process Color Clustering 0: uncheck, 1: adaptive, 2: k-means
+         if(obj.color_method == 0){
+            detail.appendChild(formatData("Color Clustering", 0));
+         }else if(obj.color_method == 1){
+            detail.appendChild(formatData("Color Clustering(Adaptive)", obj.clusters));
+         }else if(obj.color_method == 2){
+            detail.appendChild(formatData("Color Clustering(K-means)", obj.clusters));
+         }
+         // Algorithm specific setting 
+         detail.appendChild(formatData(p1Text, p1));
+         detail.appendChild(formatData(p2Text, p2));
+         detail.appendChild(formatData(p3Text, p3));
+         //  Post-Process Small Feature Removal
+         if(obj.small_rem_threshold == 0){
+            detail.appendChild(formatData("Small Feature Removal", 0));
+         }else{
+            detail.appendChild(formatData("Small Feature Removal", obj.small_rem_threshold));
+         }
+         //Region Merging
+         if(obj.rag_method == 0){
+            detail.appendChild(formatData("Region Merging", 0));
+         }else if(obj.rag_method == 1){
+            detail.appendChild(formatData("Region Merging(Threshold Cut)", obj.rag_threshold));
+         }else if(obj.rag_method == 2){
+            detail.appendChild(formatData("Region Merging(Normailized Cut)", obj.rag_threshold));
+         }else if(obj.rag_method == 3){
+            detail.appendChild(formatData("Region Merging(Merge Hierachical)", obj.rag_threshold));
+         }
+ 
+         img.style.backgroundImage = `url(${"{{ url_for('static', filename = 'path') }}".replace("path", obj.marked_image_path)})`;
+         card.appendChild(img);
+         card.appendChild(detail);
+ 
+         return card;
+    }
+    
+    /*
+        Compare Window - Replace compare image
+    */
+    $(document).ready(function(){
+
+        // load crop image 
+        let sideBarPreviewImageTmp = document.querySelector(".dashboard-sideBar__preview");
+        sideBarPreviewImageTmp.style.backgroundImage =  `url(${"{{ url_for('static', filename = 'path') }}".replace("path", cropIMG.visualization_path)})`;
+        
+        // set up gallery 
+        segGallery = new Gallery([],segCard, 8, segLibrary, arrowLeft, arrowRight);
+        segGallery.initialization();
+        loadSegImgByCropImgID(cropID);
+        console.log("1 segGallery.list.length: ", segGallery.list.length)
+
+        let list =  document.querySelector(".select-items");
+        list.childNodes.forEach((element) => {
+            element.addEventListener('click', function (){
+                let value = algorithmSelector.val();
+                pickAlgorithm(value);
+            })
+        });
+
+        /*
+        mark boundary
+        */
+        markBoundary.addEventListener("click", function (){
+            if (lightingAdjustmentCheck.checked) {
+                prevewSectionBG.style.height = "90vh";
+                prevewSectionBG.style.width = "60vw";
+                let topRow = document.createElement("div");
+                let botRow = document.createElement("div");
+                topRow.setAttribute("class","preview-top-row");
+                botRow.setAttribute("class","preview-bot-row");
+                previewImage.appendChild(topRow);
+                previewImage.appendChild(botRow);
+            } else {
+                prevewSectionBG.style.height = "80vh";
+                prevewSectionBG.style.width = "80vw";
+                previewImage.innerHTML = "";
+            }
+            savePre(0,algorithmSelector.val());
+        });
+
+        /*
+            mark img window save btn
+        */
+        markSaveBtn.addEventListener("click", function(){
+            console.log("markSave")
+            if(currentSEGIMG != ""){
+                SEGIMG.push(currentSEGIMG);  
+            }
+            previewImage.innerHTML="";
+            prevewSection.style.display = "none";
+            savePreview(currentSEGIMG, algorithmSelector.val());
+            currentSEGIMG = "";
+        });
+
+        /*
+            mark img window cancel btn 
+        */
+        markCancelBtn.addEventListener("click", function(){
+            previewImage.innerHTML="";
+            prevewSection.style.display = "none";
+            currentSEGIMG = "";
+        });
+        
+        /*
+            Compare Window - drag_target setting
+        */
+        compareRightDrop.addEventListener("dragover", (event) => {
+            // prevent default to allow drop
+            event.preventDefault();
+        }, false,);
+    
+        compareRightDrop.addEventListener("dragenter", (event) => {
+            // highlight potential drop target when the draggable element enters it
+            console.log("enter");
+            if (event.target.classList.contains("compare-right-drop")) {
+                compareRightInfo.classList.add("drag-over");
+            }
+        });
+    
+        compareRightDrop.addEventListener("dragleave", (event) => {
+            // reset background of potential drop target when the draggable element leaves it
+            console.log("leave");
+            if (event.target.classList.contains("compare-right-drop")) {
+                compareRightInfo.classList.remove("drag-over");
+            }
+        });
+        compareRightDrop.addEventListener("drop", (event) => {
+            // prevent default action (open as link for some elements)
+            event.preventDefault();
+            // move dragged element to the selected drop target
+            if (event.target.classList.contains("compare-right-drop")) {
+                compareRightInfo.classList.remove("drag-over");
+                compareRightInfo.innerHTML = "";
+                compareRightInfo.appendChild(compareImageToHTML(draggedBox));
+            }
+        });
+
+        // left sidde
+        compareLeftDrop.addEventListener("dragover", (event) => {
+            // prevent default to allow drop
+            event.preventDefault();
+        }, false,);
+    
+        compareLeftDrop.addEventListener("dragenter", (event) => {
+            // highlight potential drop target when the draggable element enters it
+            console.log("enter");
+            if (event.target.classList.contains("compare-left-drop")) {
+                compareLeftInfo.classList.add("drag-over");
+            }
+        });
+    
+        compareLeftDrop.addEventListener("dragleave", (event) => {
+            // reset background of potential drop target when the draggable element leaves it
+            console.log("leave");
+            if (event.target.classList.contains("compare-left-drop")) {
+                compareLeftInfo.classList.remove("drag-over");
+            }
+        });
+        compareLeftDrop.addEventListener("drop", (event) => {
+            // prevent default action (open as link for some elements)
+            event.preventDefault();
+            // move dragged element to the selected drop target
+            if (event.target.classList.contains("compare-left-drop")) {
+                compareLeftInfo.classList.remove("drag-over");
+                compareLeftInfo.innerHTML = "";
+                compareLeftInfo.appendChild(compareImageToHTML(draggedBox));
+            }
+        });
+
+        // piechart and barchart switch btn
+        pieChartBtn.addEventListener("click", function(){
+            if(barChartBtn.classList.contains("active")){
+                console.log("switch to pie");
+                pieChartBtn.classList.add("active");
+                barChartBtn.classList.remove("active");
+                pieChart.style.zIndex = "2";
+                barChart.style.zIndex = "1";
+            }
+        })
+        barChartBtn.addEventListener("click", function(){
+            if(pieChartBtn.classList.contains("active")){
+                console.log("switch to bar");
+                barChartBtn.classList.add("active");
+                pieChartBtn.classList.remove("active");
+                barChart.style.zIndex = "2";
+                pieChart.style.zIndex = "1";
+            }
+        })
+
+        imageZoomBtn.addEventListener("click", function(){
+            let lens = document.querySelector(".img-zoom-lens");
+            if(imageZoomBtn.classList.contains("active")){
+                imageZoomBtn.classList.remove("active");
+                imageZoom.style.zIndex = 0;
+                lens.style.zIndex = 0;
+            }else{
+                imageZoomBtn.classList.add("active");
+                imageZoom.style.zIndex = 3;
+                lens.style.zIndex = 4;
+            }
+        })
+
+        zoomOut.addEventListener("click", function(){
+            console.log("zoomout")
+            let lens = document.querySelector(".img-zoom-lens");
+            if(lens.offsetWidth + 10 < 512){
+                console.log("out")
+                lens.style.width = `${lens.offsetWidth + 10}px`;
+                lens.style.height = `${lens.offsetHeight + 10}px`;
+                imageZoomFunction("image-zoom", "zoomResult", lens);
+                console.log(lens.offsetWidth)
+            }
+        })
+
+        zoomIn.addEventListener("click", function(){
+            let lens = document.querySelector(".img-zoom-lens");
+            if(lens.offsetWidth - 10 > 0){
+                lens.style.width = `${lens.offsetWidth - 10}px`;
+                lens.style.height = `${lens.offsetHeight - 10}px`;
+                imageZoomFunction("image-zoom", "zoomResult", lens);
+            }
+        })
+    
+    
+    
+        
+    });
+</script>
+
+{% endblock %}
