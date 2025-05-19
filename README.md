@@ -5,21 +5,45 @@ This guide provides detailed instructions for setting up and running the ClassX 
 
 ---
 
+## ✅ Tested On
+
+This setup has been tested with the following versions:
+
+```bash
+Git:              2.34.1
+Docker:           28.1.1, build 4eba377
+Docker Compose:   v2.35.1
+```
+
+---
+
 ## 1. Install Prerequisites
 
 ```bash
 sudo apt update
 sudo apt install -y git docker.io docker-compose-plugin make
+```
+
+Enable and start Docker:
+
+```bash
 sudo systemctl enable docker
 sudo systemctl start docker
 ```
 
-Verify installations:
+Verify Docker is running:
+
+```bash
+sudo systemctl status docker
+```
+
+Verify tool installations:
 
 ```bash
 git --version
 docker --version
 docker compose version
+make --version
 ```
 
 ---
@@ -38,6 +62,8 @@ git config --global user.email "you@example.com"
 ```bash
 docker login ghcr.io
 ```
+
+> 🛑 **Note:** The application image is hosted in a **private GMU container registry**. Please contact the GMU ClassX team with your GitHub username to request access.
 
 ---
 
