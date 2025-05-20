@@ -262,7 +262,7 @@ Keycloak is used in ClassX to manage user authentication, secure access, and rol
 
 In your browser, navigate to:
 
-http://<IP address>/keycloak
+http://<IPaddress>/keycloak
 
 This should bring up the Keycloak admin login page. The login details are admin, and the password is what you set in the environment variables.  
 
