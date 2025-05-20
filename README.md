@@ -55,7 +55,7 @@ This section guides you through installing the required tools to run ClassX on y
 
 **Important:** All commands in this guide are intended to be run with sudo. If you’re not logged in as root, prefix each command with sudo or switch to root using
 
-_sudo su –l_
+```sudo su –l```
 
 **Step 1: Update Package Lists**
 
