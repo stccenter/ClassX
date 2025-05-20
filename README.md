@@ -102,6 +102,8 @@ sudo systemctl enable docker
 sudo systemctl start docker
 ```
 
+![ClassX Keycloak Login Page](https://i.freeimage.host/v1/2025/05/19/3iPvXF2.png)
+
 To confirm Docker is running, check its status:
 
 ```bash
