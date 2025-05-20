@@ -264,8 +264,11 @@ Now, use the below command to check the overall status of the containers.
 ```bash
 docker ps
 ```
+![Docker Status](images/docker_ps.png)
  
- ![Docker Status](images/docker_ps.png)
+At this point, monitor the Keycloak logs. Watch for the below logs to ensure the container is healthy.
+
+![Kcx_logs](images/kcx_logs.png)
 
 You should see entries for the following containers:
 
