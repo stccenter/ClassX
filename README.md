@@ -141,7 +141,7 @@ If each command returns an exact version number or a later version number, the i
 
 ## 4\. Authenticate with GitHub and Docker (if required)
 
-You may need to log in to GitHub and Docker to download private container images or interact with version-controlled repositories.
+You may need to log in to GitHub and Docker to download container images or interact with version-controlled repositories.
 
 **Step 1: GitHub Configuration (for Git access)**
 
