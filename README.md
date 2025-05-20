@@ -127,16 +127,11 @@ git --version
  ```bash
 docker compose version
 ```
-
- ![Docker Version](images/docker_compose_version.png)
+ ![Docker Compose Version](images/docker_compose_version.png)
  
 make --version
+ ![Make Version](images/make_version.png)
  
-If each command returns an exact version number or a later version number, the installation is complete.
-
-
-
-
 If each command returns an exact version number or a later version number, the installation is complete.
 
 ## 4\. Authenticate with GitHub and Docker (if required)
@@ -259,6 +254,7 @@ First, we need to make sure all the containers are healthy by using the followin
 ```bash
 docker ps
 ```
+ ![Docker Status](images/docker_ps.png)
 
 You should see entries for the following containers:
 
