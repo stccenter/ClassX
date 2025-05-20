@@ -1,4 +1,4 @@
-**ClassX: Installation and Setup Guide for Linux Users**
+# ClassX: Installation and Setup Guide for Linux Users
 
 ## 1\. Introduction
 
