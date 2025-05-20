@@ -108,6 +108,8 @@ To confirm Docker is running, check its status:
 sudo systemctl status docker
 ```
 
+ ![Docker status](images/docker_start.png)
+
 You should see the status as “active (running)”.
 
 **Step 6: Verify Installations**
@@ -290,15 +292,15 @@ In your browser, navigate to:
 
 http://<your-ip-address>/keycloak
 
-
 This should bring up the Keycloak admin login page. The login details are admin, and the password is what you set in the environment variables.  
 
-The login page of Keycloak looks like this:
+ ![keycloak_login](images/keycloak_login.png)
 
 **Step 2: Configure Keycloak Realm routes**
 From the drop-down menu, click on your realm and select STC-ClassX. Then, click on “Clients” and you should see the “flask-app” and “admin-api” clients.
 
-
+ ![stcenter_realm](images/stcenter_realm.png)
+ 
 **Step 3: Add redirect URI**
 Click on ‘flask-app’, then navigate to ‘Valid redirect URIs’. Click on ‘Add valid redirect URIs’ and insert http://<IP address>/callback. Similarly, navigate to the “Valid post logout redirect URIs” and insert http://<IP address>/callback.
 
