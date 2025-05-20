@@ -53,10 +53,10 @@ sudo apt update
 
 **Step 2: Install Required Packages**
 
-Install Git, Docker, Docker Compose plugin, and Make:
+Install Git and Make:
 
 ```bash
-sudo apt install -y git docker.io docker-compose-plugin make
+sudo apt install -y git make
 ```
 
 **Step 3: Set up Docker's apt repository**
