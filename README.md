@@ -130,6 +130,7 @@ docker compose version
  ![Docker Compose Version](images/docker_compose_version.png)
  
 make --version
+
  ![Make Version](images/make_version.png)
  
 If each command returns an exact version number or a later version number, the installation is complete.
