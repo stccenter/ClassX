@@ -209,6 +209,7 @@ Once your .env file is ready, save and close it.
 
 
 **Step 4: Update the NGINX configuration file**
+
 Change the server_name in the config/nginx/default.conf as per your hostname.
 
  ![NGINX config](images/nginx_config.png)
