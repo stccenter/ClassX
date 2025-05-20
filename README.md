@@ -95,20 +95,31 @@ sudo apt-get update
 
 Install the latest version of Docker
 
-_sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin_
+
+```bash
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
 
 **Step 5: Enable and Start Docker**
 
 Set Docker to start automatically when your system boots:
 
-_sudo systemctl enable docker_
+```bash
+sudo systemctl enable docker
+```
 
-_sudo systemctl start docker_
+
+```bash
+sudo systemctl start docker
+```
 
 
 To confirm Docker is running, check its status:
 
-_sudo systemctl status docker_
+
+```bash
+sudo systemctl status docker
+```
 
 
 If each command returns an exact version number or a later version number, the installation is complete.
