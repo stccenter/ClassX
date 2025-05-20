@@ -197,25 +197,25 @@ cp .env.example .env
 
 Open .env in any text editor and update the following variables in the .env file as per your set up.
 
-DB_USER
+* DB_USER
 
-DB_PASSWORD
+* DB_PASSWORD
 
-MYSQL_ROOT_PASSWORD
+* MYSQL_ROOT_PASSWORD
 
-FLASK_SECRET_KE
+* FLASK_SECRET_KE
 
-JWT_SECRET_KEY
+* JWT_SECRET_KEY
 
-FRONTEND_URL
+* FRONTEND_URL
 
-NEXT_PUBLIC_API_URL
+* NEXT_PUBLIC_API_URL
 
-NEXT_DEFAULT_API_BASE_URL
+* NEXT_DEFAULT_API_BASE_URL
 
 VITE_SRC_URL
 
-Note: FRONTEND_URL, NEXT_PUBLIC_API_URL, NEXT_DEFAULT_API_BASE_URL, VITE_SRC_URL with your actual server IP or domain name (use localhost for local testing)
+**Note:** FRONTEND_URL, NEXT_PUBLIC_API_URL, NEXT_DEFAULT_API_BASE_URL, VITE_SRC_URL with your actual server IP or domain name (use localhost for local testing)
 
 Once your .env file is ready, save and close it.  
 
@@ -236,7 +236,7 @@ The ClassX project includes a Makefile that simplifies commonly used Docker comm
 | make down | Stops and removes all running containers and associated volumes |
 | make reset | Performs a complete teardown and restarts the system from a clean state |
 
-Note: These commands should be executed from the root directory of the ClassX project, where the Makefile is located.
+**Note:** These commands should be executed from the root directory of the ClassX project, where the Makefile is located.
 
 Run the command below to build all containers:
 
@@ -321,7 +321,7 @@ The page should be redirected to Keycloak’s login page, where you will need to
 
 ![ClassX index](images/classx_index.png)
 
-Note: If your installation is fresh, there will be no images displayed.  
+**Note:** If your installation is fresh, there will be no images displayed.  
 
 **Setup Complete**
 
