@@ -1,6 +1,5 @@
 # ./docker/auth/Dockerfile
-
-FROM quay.io/keycloak/keycloak:20.0.1
+FROM quay.io/keycloak/keycloak:24.0.2
 
 USER root
 RUN mkdir -p /opt/keycloak/data/import && \

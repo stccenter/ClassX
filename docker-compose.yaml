@@ -48,8 +48,8 @@ services:
       - --features=preview
       - --proxy=edge
       - --import-realm
-      - --hostname-url=http://10.192.20.180/keycloak
-      - --hostname-admin-url=http://10.192.20.180/keycloak
+      - --hostname-url=http://${KEYCLOAK_HOST_IP}/keycloak
+      - --hostname-admin-url=http://${KEYCLOAK_HOST_IP}/keycloak
       - --hostname-strict=false
       - --hostname-strict-https=false
       - --health-enabled=true
@@ -91,7 +91,30 @@ services:
     networks:
       - appnet
       - frontnet
-        
+
+  worker:
+    container_name: worker
+    image: ghcr.io/sivanuhappy/classx-app:latest
+    env_file:
+      - .env
+    entrypoint: >
+      /bin/bash -c "
+      source /opt/conda/etc/profile.d/conda.sh &&
+      conda activate ClassXTool &&
+      export PYTHONPATH=/app &&
+      sleep 5 &&
+      celery -A tasks.celery worker -l info -E --concurrency=2
+      "
+    depends_on:
+      appx:
+        condition: service_started
+      redis:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - appnet
+      - frontnet
+
 
   redis:
     container_name: redis
