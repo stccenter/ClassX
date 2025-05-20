@@ -248,6 +248,7 @@ docker ps
  At this point, you may see only three containers running. This is due to the database container taking a long time to up.
 
  **Step 3: Check database container logs**
+ 
 ```bash
 docker logs -f dbx
 ```
@@ -261,6 +262,7 @@ make up
 ```
 
 Now, use the below command to check the overall status of the containers.
+
 ```bash
 docker ps
 ```
