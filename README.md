@@ -6,7 +6,7 @@ This guide provides a detailed, step-by-step process for installing and configur
 
 The ClassX Tool includes several integrated components:
 
-
+ ![ClassX Flowchart](images/classx_flowchart.png)
 
 ClassX System Design
 
