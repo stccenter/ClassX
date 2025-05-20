@@ -55,19 +55,25 @@ This section guides you through installing the required tools to run ClassX on y
 
 **Important:** All commands in this guide are intended to be run with sudo. If you’re not logged in as root, prefix each command with sudo or switch to root using
 
-```sudo su –l```
+```bash
+sudo su –l
+```
 
 **Step 1: Update Package Lists**
 
 Open a terminal and update your system’s package index to ensure you get the latest versions:
 
-```sudo apt update```
+```bash
+sudo apt update
+```
 
 **Step 2: Install Required Packages**
 
 Install Git, Docker, Docker Compose plugin, and Make:
 
-```sudo apt install -y git docker.io docker-compose-plugin make```
+```bash
+sudo apt install -y git docker.io docker-compose-plugin make
+```
 
 **Step 3: Set up Docker's apt repository**
 
@@ -108,19 +114,15 @@ Set Docker to start automatically when your system boots:
 sudo systemctl enable docker
 ```
 
-
 ```bash
 sudo systemctl start docker
 ```
 
-
 To confirm Docker is running, check its status:
-
 
 ```bash
 sudo systemctl status docker
 ```
-
 
 If each command returns an exact version number or a later version number, the installation is complete.
 
@@ -132,9 +134,13 @@ You may need to log in to GitHub and Docker to download private container images
 
 If this is your first time using Git on this system, configure your Git identity:
 
-_git config --global user.name “Your Name”_
+```bash
+git config --global user.name “Your Name”
+```
 
-_git config --global user.email “you@example.com”_
+```bash
+git config --global user.email “you@example.com”
+```
 
 This ensures your commits and activities are associated with your GitHub account.
 
@@ -142,7 +148,9 @@ This ensures your commits and activities are associated with your GitHub account
 
 Run the following command to log in:
 
-_docker login ghcr.io_
+```bash
+docker login ghcr.io
+```
 
 You will be prompted to enter your GitHub username and personal access token.
 
@@ -154,9 +162,15 @@ This step involves downloading the ClassX project files and configuring the envi
 
 In your terminal, navigate to the directory where you want to store the project, then run:
 
-_git clone https://github.com/stccenter/ClassX.git_
+```bash
+git clone https://github.com/stccenter/ClassX.git
+```
 
-_cd ClassX_
+Navigate to the ClassX directory.
+
+```bash
+cd ClassX
+```
 
 **Step 2: Create the Environment File**
 
