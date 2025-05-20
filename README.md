@@ -286,26 +286,18 @@ docker logs -f kcx
 ![Kcx_logs](images/kcx_logs.png)
 
 
-1.  appx – Flask backend
-2.  kcx – Keycloak authentication server
-3.  dbx – MySQL database
-4.  redis – Message broker
-5.  celery – Background task handler
-6.  nginx-react – React frontend served via NGINX
-
-
-
 **Step 5: Check Docker logs**
 
 Refer to the following table for commands.
 
-| Command | Description |
-| --- | --- |
-| docker logs -f kcx | Check Keycloak container logs. |
-| docker logs -f appx | Check App container logs. |
-| docker logs -f nginx | Check Nginx container logs. |
-| docker logs -f dbx | Check Database container logs |
-| docker logs -f redis | Check Redis container logs. |
+| Command                  | Description                  | Container     | Service                      |
+|--------------------------|------------------------------|---------------|------------------------------|
+| docker logs -f kcx       | Check Keycloak container logs. | kcx           | Keycloak authentication server |
+| docker logs -f appx      | Check App container logs.     | appx          | Flask backend                |
+| docker logs -f nginx     | Check Nginx container logs.   | nginx-react   | React frontend served via NGINX |
+| docker logs -f dbx       | Check Database container logs | dbx           | MySQL database               |
+| docker logs -f redis     | Check Redis container logs.   | redis         | Message broker               |
+
 
 ## 7\. Configure Keycloak Authentication
 
