@@ -139,25 +139,11 @@ make --version
  
 If each command returns an exact version number or a later version number, the installation is complete.
 
-## 4\. Authenticate with GitHub and Docker (if required)
+## 4\. Authenticate with GitHub Container Registry (if required)
 
-You may need to log in to GitHub and Docker to download container images or interact with version-controlled repositories.
+You may need to log in to GitHub Container Registry to download container images.
 
-**Step 1: GitHub Configuration (for Git access)**
-
-If this is your first time using Git on this system, configure your Git identity:
-
-```bash
-git config --global user.name “Your Name”
-```
-
-```bash
-git config --global user.email “you@example.com”
-```
-
-This ensures your commits and activities are associated with your GitHub account.
-
-**Step 2: Docker Login (for Private Container Registry)**
+**Step 1: Docker Login**
 
 Run the following command to log in:
 
@@ -223,7 +209,7 @@ Once your .env file is ready, save and close it.
 
 ## 6\. Build and Run ClassX Using Docker Compose
 
-After setting up your .env file and installing all prerequisites, follow the steps below to either build or pull the ClassX Docker images and start the application.
+After setting up your .env file and installing all prerequisites, follow the steps below to build which pull the ClassX Docker images and start the application.
 
 **Step 1: Bring up the ClassX applications**
 
