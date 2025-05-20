@@ -207,6 +207,12 @@ Open .env in any text editor and update the following variables in the .env file
 
 Once your .env file is ready, save and close it.  
 
+
+**Step 4: Update the NGINX configuration file**
+Change the server_name in the config/nginx/default.conf as per your hostname.
+
+ ![NGINX config](images/nginx_config.png)
+
 ## 6\. Build and Run ClassX Using Docker Compose
 
 After setting up your .env file and installing all prerequisites, follow the steps below to build which pull the ClassX Docker images and start the application.
