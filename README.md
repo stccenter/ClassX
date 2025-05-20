@@ -300,21 +300,28 @@ This should bring up the Keycloak admin login page. The login details are admin,
 From the drop-down menu, click on your realm and select STC-ClassX. Then, click on “Clients” and you should see the “flask-app” and “admin-api” clients.
 
  ![stcenter_realm](images/stcenter_realm.png)
+
+ ![Clients](images/clients.png)
  
 **Step 3: Add redirect URI**
 Click on ‘flask-app’, then navigate to ‘Valid redirect URIs’. Click on ‘Add valid redirect URIs’ and insert http://<IP address>/callback. Similarly, navigate to the “Valid post logout redirect URIs” and insert http://<IP address>/callback.
 
+![Add URIs](images/add_uris.jpeg)
 
 **Step 4: Sign in to the ClassX application**
 You can navigate to the application at http://<youripaddress>/, where the front page should open. Then, click the drop-down menu in the top right corner and select “SIGN IN”.
 
+![ClassX home](images/classx_home.png)
+
+![ClassX signin](images/classx_sign.png)
 
 **Step 5: Register and Sign in**
 
 The page should be redirected to Keycloak’s login page, where you will need to register and then sign in. If the image view page loads, then the system is set up and installed correctly.
 
+![ClassX index](images/classx_index.png)
 
-Note: if your installation is fresh, there will be no images displayed.  
+Note: If your installation is fresh, there will be no images displayed.  
 
 **Setup Complete**
 
