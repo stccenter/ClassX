@@ -283,7 +283,7 @@ At this point, monitor the Keycloak logs. Watch for the below message in the log
 ![Kcx_logs](images/kcx_logs.png)
 
 
-**Step 3: Check Docker logs**
+**Step 5: Check Docker logs**
 
 Refer to the following table for commands.
 
