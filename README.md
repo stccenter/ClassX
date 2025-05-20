@@ -61,13 +61,13 @@ This section guides you through installing the required tools to run ClassX on y
 
 Open a terminal and update your system’s package index to ensure you get the latest versions:
 
-_sudo apt update_
+```sudo apt update```
 
 **Step 2: Install Required Packages**
 
 Install Git, Docker, Docker Compose plugin, and Make:
 
-_sudo apt install -y git docker.io docker-compose-plugin make_
+```sudo apt install -y git docker.io docker-compose-plugin make```
 
 **Step 3: Set up Docker's apt repository**
 
