@@ -262,20 +262,19 @@ docker logs -f dbx
  ![DB_logs](images/db_container_logs.png)
 
   **Step 4: Bring up remaining containers**
-  Run the below command which will bring up the remaining containers such as Keycloak and the front-end.
+  
+ Run the below command which will bring up the remaining containers such as Keycloak and the front-end.
   
 ```bash
 make up
 ```
 
-Now, use the below command to check the overall status of the containers.
+Now, use the below command to check the overall status of the containers. You should see entries for the following containers. If all containers are listed and running, the system is now active.
 
 ```bash
 docker ps
 ```
 ![Docker Status](images/docker_ps.png)
-
-You should see entries for the following containers. If all containers are listed and running, the system is now active.
 
 
 At this point, monitor the Keycloak logs. Watch for the below message in the log to ensure the container is healthy.
