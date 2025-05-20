@@ -277,6 +277,16 @@ docker ps
 
 You should see entries for the following containers. If all containers are listed and running, the system is now active.
 
+
+At this point, monitor the Keycloak logs. Watch for the below message in the log to ensure the container is healthy.
+
+```bash
+docker logs -f kcx
+```
+
+![Kcx_logs](images/kcx_logs.png)
+
+
 1.  appx – Flask backend
 2.  kcx – Keycloak authentication server
 3.  dbx – MySQL database
@@ -284,10 +294,6 @@ You should see entries for the following containers. If all containers are liste
 5.  celery – Background task handler
 6.  nginx-react – React frontend served via NGINX
 
-
-At this point, monitor the Keycloak logs. Watch for the below message in the log to ensure the container is healthy.
-
-![Kcx_logs](images/kcx_logs.png)
 
 
 **Step 5: Check Docker logs**
