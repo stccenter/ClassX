@@ -290,7 +290,7 @@ Keycloak is used in ClassX to manage user authentication, secure access, and rol
 
 In your browser, navigate to:
 
-http://<your-ip-address>/keycloak
+http://your-ip-address/keycloak
 
 This should bring up the Keycloak admin login page. The login details are admin, and the password is what you set in the environment variables.  
 
@@ -304,12 +304,12 @@ From the drop-down menu, click on your realm and select STC-ClassX. Then, click 
  ![Clients](images/clients.png)
  
 **Step 3: Add redirect URI**
-Click on ‘flask-app’, then navigate to ‘Valid redirect URIs’. Click on ‘Add valid redirect URIs’ and insert http://<IP address>/callback. Similarly, navigate to the “Valid post logout redirect URIs” and insert http://<IP address>/callback.
+Click on ‘flask-app’, then navigate to ‘Valid redirect URIs’. Click on ‘Add valid redirect URIs’ and insert http://your-ip-address/callback. Similarly, navigate to the “Valid post logout redirect URIs” and insert http://your-ip-address/callback.
 
 ![Add URIs](images/add_uris.jpg)
 
 **Step 4: Sign in to the ClassX application**
-You can navigate to the application at http://<youripaddress>/, where the front page should open. Then, click the drop-down menu in the top right corner and select “SIGN IN”.
+You can navigate to the application at http://your-ip-address/, where the front page should open. Then, click the drop-down menu in the top right corner and select “SIGN IN”.
 
 ![ClassX home](images/classx_home.png)
 
