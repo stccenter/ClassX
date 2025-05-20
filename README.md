@@ -245,6 +245,26 @@ First, we need to make sure all the containers are healthy by using the followin
 ```bash
 docker ps
 ```
+ At this point, you may see only three containers running. This is due to the database container taking a long time to up.
+
+ **Step 3: Check database container logs**
+```bash
+docker logs -f dbx
+```
+ ![DB_logs](images/db_container_logs.png)
+
+  **Step 4: Bring up remaining containers**
+  Run the below command which will bring up the remaining containers such as Keycloak and the front-end.
+  
+```bash
+make up
+```
+
+Now, use the below command to check the overall status of the containers.
+```bash
+docker ps
+```
+ 
  ![Docker Status](images/docker_ps.png)
 
 You should see entries for the following containers:
