@@ -168,9 +168,7 @@ cp .env.example .env
 
 **Step 3: Modify the .env file**
 
-Open .env in any text editor and update the placeholder values:
-
-1.  Update the following variables in the .env file as per your set up.
+Open .env in any text editor and update the following variables in the .env file as per your set up.
 
 DB_USER
 
