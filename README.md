@@ -130,8 +130,10 @@ git --version
 docker compose version
 ```
  ![Docker Compose Version](images/docker_compose_version.png)
- 
+
+ ```bash
 make --version
+```
 
  ![Make Version](images/make_version.png)
  
