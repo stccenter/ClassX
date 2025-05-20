@@ -108,6 +108,35 @@ To confirm Docker is running, check its status:
 sudo systemctl status docker
 ```
 
+You should see the status as “active (running)”.
+
+**Step 6: Verify Installations**
+
+Ensure all required tools are correctly installed:
+```bash
+git --version
+```
+
+ ![Git Version](images/git_version.png)
+
+```bash
+ docker --version
+```
+ ![Docker Version](images/docker_version.png)
+
+ ```bash
+docker compose version
+```
+
+ ![Docker Version](images/docker_compose_version.png)
+ 
+make --version
+ 
+If each command returns an exact version number or a later version number, the installation is complete.
+
+
+
+
 If each command returns an exact version number or a later version number, the installation is complete.
 
 ## 4\. Authenticate with GitHub and Docker (if required)
