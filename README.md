@@ -306,7 +306,7 @@ From the drop-down menu, click on your realm and select STC-ClassX. Then, click 
 **Step 3: Add redirect URI**
 Click on ‘flask-app’, then navigate to ‘Valid redirect URIs’. Click on ‘Add valid redirect URIs’ and insert http://<IP address>/callback. Similarly, navigate to the “Valid post logout redirect URIs” and insert http://<IP address>/callback.
 
-![Add URIs](images/add_uris.jpeg)
+![Add URIs](images/add_uris.jpg)
 
 **Step 4: Sign in to the ClassX application**
 You can navigate to the application at http://<youripaddress>/, where the front page should open. Then, click the drop-down menu in the top right corner and select “SIGN IN”.
