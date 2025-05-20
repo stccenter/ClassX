@@ -73,29 +73,19 @@ Install Git, Docker, Docker Compose plugin, and Make:
 
 Set the Docker packages using the following commands:
 
-_\# Add Docker's official GPG key:_
+```# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-_sudo apt-get update_
-
-_sudo apt-get install ca-certificates curl_
-
-_sudo install -m 0755 -d /etc/apt/keyrings_
-
-_sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc_
-
-_sudo chmod a+r /etc/apt/keyrings/docker.asc_
-
-_\# Add the repository to Apt sources:_
-
-_echo \\_
-
-_"deb \[arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc\] https://download.docker.com/linux/ubuntu \\_
-
-_$(. /etc/os-release && echo "${UBUNTU\_CODENAME:-$VERSION\_CODENAME}") stable" | \\_
-
-_sudo tee /etc/apt/sources.list.d/docker.list > /dev/null_
-
-_sudo apt-get update_
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update```
 
 **Step 4: Install the Docker packages**
 
