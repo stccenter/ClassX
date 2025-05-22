@@ -26,26 +26,46 @@
 
     </div> 
 
-    <!-- about us -->
-    <div class="main">
-        <div class="aboutHome">
-            <div class="aboutHomeContainer">
-                <div class="aboutColumn">
-                    <h2>About Us<h2>
-                </div>
+<section style="background-color: white; font-family: sans-serif; padding: 4rem 2rem;">
+  <div style="max-width: 1280px; margin: 0 auto; display: flex; flex-direction: row; align-items: flex-start; gap: 2rem;">
 
-                <div class="aboutColumn">
-                    <p> {{HOMEPAGE_ABOUT}} 
-                    </p> 
+    <div style="flex: 1;">
+      <h2 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1.5rem; position: relative; color: #1a1a1a;">
+        About Us
+        <span style="position: absolute; width: 96px; height: 7px; background-color: #e6cc00; bottom: -8px; left: 0; display: block;"></span>
+      </h2>
 
-                    <div class="aboutHomeBtn">
-                        <button class="aboutBtn">Learn more</button>
-                    </div>
-                </div>      
-            </div>
-        </div>
+      <article style="font-size: 1rem; line-height: 1.75; margin-top: 1.5rem; color: #333;">
+        Our training dataset auto-labeling tool and service is developed with support from the NASA MDRAIT program to facilitate image data labeling for Earth and Heliophysics domains. This tool is developed by the NSF Spatiotemporal I/UCRC at George Mason University (GMU) in collaboration with NASA Goddard CISTO, with partial funding from AIST 2021.
+      </article>
+
+      <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: #1a1a1a;">Key Features:</h3>
+      <ul style="list-style: disc; padding-left: 1.5rem; color: #333;">
+        <li style="margin-bottom: 1rem;">• Supports automatic labeling for Heliophysics image data, including coronal hole identification using Extreme Ultraviolet (EUV) solar imagery.</li>
+        <li style="margin-bottom: 1rem;">• Increases efficiency in data exploration, reducing the time scientists spend searching, creating, and obtaining datasets.</li>
+        <li style="margin-bottom: 1rem;">• Deployed in the NASA Goddard CISTO cloud environment, allowing NASA users to easily register and access datasets for AI/ML research.</li>
+      </ul>
+
+      <div style="margin-top: 2rem;">
+        <a href="/aboutus" class="aboutBtn" style="text-decoration: none;">
+          <button style="padding: 0.75rem 1.5rem; background-color: #e6cc00; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+            Learn more
+          </button>
+        </a>
+      </div>
     </div>
-</div>
+
+    <div style="flex: 0 0 360px;">
+      <img
+        src="/static/images/homepage_images/aia_20120602_195955_0193_image_lev1.png"
+        alt="About us sun image"
+        style="width: 100%; height: auto; border-radius: 0.5rem; object-fit: cover;"
+      />
+    </div>
+  </div>
+</section>
+
+
 
 <script>
     let btn_left = document.querySelector(".header-carousel__btn-left");
