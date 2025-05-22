@@ -1,8 +1,8 @@
 .DS_Store
 .flaskenv
-flask_session
-static/images/default/**
-static/images/user_images/**
+app/flask_session
+app/static/images/default/**
+app/static/images/user_images/**
 __pycache__
 lib/attribute_calculations.*
 lib/rescale_intensity.*
@@ -13,10 +13,10 @@ lib/Mac/**
 .vs
 *.c
 *.pyd
-classxlib/**/*.pyd
-classxlib/**/*.c
-classxlib/**/*.so
-classxlib/**/*.cache
+app/classxlib/**/*.pyd
+app/classxlib/**/*.c
+app/classxlib/**/*.so
+app/classxlib/**/*.cache
 .env
 docker/prod/nginx/certs/**
 git_filter_repo.py
