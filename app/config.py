@@ -69,9 +69,9 @@ class Config:
         OAUTH2_AUTH_URL = environ.get('KC_SOURCE_URL') + 'realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/auth'
         OAUTH2_REVOKE_URL =  environ.get('KC_SOURCE_URL') + 'realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/logout?'
     elif FLASK_ENV == 'development':
-        OAUTH2_TOKEN_URL = 'http://localhost:8080' + '/realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/token'
-        OAUTH2_AUTH_URL = 'http://localhost:8080' + '/realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/auth'
-        OAUTH2_REVOKE_URL =  'http://localhost:8080' + '/realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/logout?'
+        OAUTH2_TOKEN_URL = 'http://localhost/keycloak' + '/realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/token'
+        OAUTH2_AUTH_URL = 'http://localhost/keycloak/' + '/realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/auth'
+        OAUTH2_REVOKE_URL =  'http://localhost/keycloak/' + '/realms/' + environ.get('KC_REALM')+ '/protocol/openid-connect/logout?'
 
     OAUTH_API_CLIENT = environ.get('ADMIN_CLIENT_ID')
     OAUTH_API_SECRET = environ.get('ADMIN_CLIENT_SECRET')
