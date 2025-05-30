@@ -26,6 +26,7 @@ services:
     volumes:
       - appdb-data:/var/lib/mysql
       - ./database/mysql-init:/docker-entrypoint-initdb.d
+      - ./database/data:/data
     ports:
       - "3306:3306"
     healthcheck:
@@ -82,13 +83,13 @@ services:
       sleep 5 &&
       gunicorn --workers 10 --threads 12 -b 0.0.0.0:5000 wsgi:app
       "
-    volumes:
-      - ./app/flaskr:/app/flaskr
-      - ./app/classxlib:/app/classxlib
-      - ./app/templates:/app/templates
-      - ./app/static:/app/static
-      - ./app/config.py:/app/config.py
-      - ./app/app.py:/app/app.py
+    # volumes:
+    #   - ./app/flaskr:/app/flaskr
+    #   - ./app/classxlib:/app/classxlib
+    #   - ./app/templates:/app/templates
+    #   - ./app/static:/app/static
+    #   - ./app/config.py:/app/config.py
+    #   - ./app/app.py:/app/app.py
     depends_on:
       dbx:
         condition: service_healthy
@@ -112,13 +113,13 @@ services:
       sleep 5 &&
       celery -A tasks.celery worker -l info -E --concurrency=2
       "
-    volumes:
-      - ./app/flaskr:/app/flaskr
-      - ./app/classxlib:/app/classxlib
-      - ./app/templates:/app/templates
-      - ./app/static:/app/static
-      - ./app/config.py:/app/config.py
-      - ./app/app.py:/app/app.py
+    # volumes:
+    #   - ./app/flaskr:/app/flaskr
+    #   - ./app/classxlib:/app/classxlib
+    #   - ./app/templates:/app/templates
+    #   - ./app/static:/app/static
+    #   - ./app/config.py:/app/config.py
+    #   - ./app/app.py:/app/app.py
     depends_on:
       appx:
         condition: service_started
@@ -128,7 +129,6 @@ services:
     networks:
       - appnet
       - frontnet
-
 
   redis:
     container_name: redis
