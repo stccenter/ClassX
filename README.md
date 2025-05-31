@@ -343,3 +343,6 @@ The page should be redirected to Keycloak’s login page, where you will need to
 **Setup Complete**
 
 You’ve now successfully installed and configured ClassX on your Linux system.
+
+## **Walkthrough video for ClassX Installation and Setup for Legacy Version in Linux**
+[<img src="images/classx_thumbnail.png">](https://youtu.be/lssPcLWJsN8?si=lA22-6OAACYn3dGE)
