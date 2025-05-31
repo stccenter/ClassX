@@ -340,10 +340,9 @@ The page should be redirected to Keycloak’s login page, where you will need to
 
 **Note:** If your installation is fresh, there will be no images displayed.  
 
-
-## **Walkthrough video for AWS Ubuntu Server multi-GPU instance**
-[<img src="Images/classx_index.png" width="60%">]([https://youtu.be/Xdqn2ntvwTM](https://youtu.be/lssPcLWJsN8?si=lA22-6OAACYn3dGE))
-
 **Setup Complete**
 
 You’ve now successfully installed and configured ClassX on your Linux system.
+
+## **Walkthrough video for ClassX Installation and Setup for Legacy Version in Linux**
+[<img src="Images/classx_index.png" width="60%">](https://youtu.be/lssPcLWJsN8?si=lA22-6OAACYn3dGE)
