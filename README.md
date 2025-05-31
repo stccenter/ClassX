@@ -191,7 +191,7 @@ Open .env in any text editor and update the following variables in the .env file
 
 * MYSQL_ROOT_PASSWORD
 
-* FLASK_SECRET_KE
+* FLASK_SECRET_KEY
 
 * JWT_SECRET_KEY
 
@@ -202,6 +202,9 @@ Open .env in any text editor and update the following variables in the .env file
 * NEXT_DEFAULT_API_BASE_URL
 
 * VITE_SRC_URL
+
+* KEYCLOAK_HOST_IP
+
 
 **Note:** FRONTEND_URL, NEXT_PUBLIC_API_URL, NEXT_DEFAULT_API_BASE_URL, VITE_SRC_URL with your actual server IP or domain name (use localhost for local testing)
 
